@@ -7,59 +7,17 @@ from reservations.api import router as reservations_router
 from facturation.api import router as facturation_router
 from terrain.reporting import router as reporting_router
 
+# Création de l'API UNE SEULE FOIS
 api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
 
-api.add_router("/users", users_router)
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', api.urls),
-]
-
-api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
-
-api.add_router("/users", users_router)
-api.add_router("/terrain", terrain_router)
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', api.urls),
-]
-
-api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
-
-api.add_router("/users", users_router)
-api.add_router("/terrain", terrain_router)
-api.add_router("/reservations", reservations_router)
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', api.urls),
-]
-
-
-api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
-
-api.add_router("/users", users_router)
-api.add_router("/terrain", terrain_router)
-api.add_router("/reservations", reservations_router)
-api.add_router("/facturation", facturation_router)
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', api.urls),
-]
-
-
-
-api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
-
+# Ajout de TOUS les routers
 api.add_router("/users", users_router)
 api.add_router("/terrain", terrain_router)
 api.add_router("/reservations", reservations_router)
 api.add_router("/facturation", facturation_router)
 api.add_router("/reporting", reporting_router)
 
+# URLs
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
