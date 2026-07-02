@@ -1,4 +1,5 @@
 API_URL = "https://cimetiere-numerique.onrender.com"
+LOGIN_URL = f"{API_URL}/api/users/login"
 PRIMARY   = "#0033FF"
 SECONDARY = "#977DFF"
 DARK      = "#00033D"
