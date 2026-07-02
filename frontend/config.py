@@ -1,5 +1,4 @@
-API_URL   = "http://127.0.0.1:8000/api"
-
+API_URL = "https://cimetiere-numerique.onrender.com"
 PRIMARY   = "#0033FF"
 SECONDARY = "#977DFF"
 DARK      = "#00033D"
