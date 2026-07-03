@@ -32,7 +32,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://cimetiere-numerique-1.onrender.com",  # Ton frontend Render
     "http://localhost:8501",                       # Développement local
 ]
+
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  
 
 # Application definition
 
