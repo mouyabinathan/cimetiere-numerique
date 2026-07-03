@@ -74,11 +74,12 @@ def main(page: ft.Page):
 
     # ---- Boot ----
     def boot():
-        time.sleep(1.0)
         page_login(page, on_login_success, on_register_click)
 
     page_splash(page)
-    page.run_thread(boot)
+    boot()
 
-
-ft.run(main)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8501))
+    ft.app(target=main, port=port, view=None)
