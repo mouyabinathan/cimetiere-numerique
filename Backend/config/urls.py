@@ -11,6 +11,7 @@ from terrain.reporting import router as reporting_router
 import subprocess
 import os
 import requests
+import time
 
 # ---------- API ----------
 api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
@@ -35,10 +36,11 @@ def serve_flet(request, path=''):
                 stderr=subprocess.DEVNULL
             )
             flet_started = True
+            time.sleep(2)
         
         port = 8501
         url = f'http://localhost:{port}/{path}' if path else f'http://localhost:{port}/'
-        resp = requests.get(url, timeout=5)
+        resp = requests.get(url, timeout=10)
         return HttpResponse(resp.content, status=resp.status_code)
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
