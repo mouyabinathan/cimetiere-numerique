@@ -86,9 +86,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+import os
+
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:4004@localhost:5432/cimetiere_db',
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600
     )
 }
