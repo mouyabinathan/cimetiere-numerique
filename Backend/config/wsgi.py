@@ -7,9 +7,17 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
-import os
 
 from django.core.wsgi import get_wsgi_application
+
+import os
+from django.core.management import call_command
+
+# Appliquer les migrations automatiquement au démarrage
+try:
+    call_command('migrate', interactive=False)
+except Exception as e:
+    print(f"Erreur lors des migrations: {e}")
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
