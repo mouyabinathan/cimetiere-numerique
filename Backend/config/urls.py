@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.urls import path, re_path
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from ninja import NinjaAPI
 from users.api import router as users_router
 from terrain.api import router as terrain_router
 from reservations.api import router as reservations_router
 from facturation.api import router as facturation_router
 from terrain.reporting import router as reporting_router
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 import subprocess
 import os
 import requests
@@ -24,11 +24,9 @@ api.add_router("/reporting", reporting_router)
 flet_started = False
 
 @csrf_exempt
-def flet_app(request, path=''):
-    """Sert le frontend Flet"""
+def serve_flet(request, path=''):
     global flet_started
     try:
-        # Lance Flet en arrière-plan (une seule fois)
         if not flet_started:
             subprocess.Popen(
                 ['python', 'frontend/main.py'],
@@ -38,12 +36,9 @@ def flet_app(request, path=''):
             )
             flet_started = True
         
-        # Redirige vers le port de Flet
         port = 8501
-        if path:
-            resp = requests.get(f'http://localhost:{port}/{path}')
-        else:
-            resp = requests.get(f'http://localhost:{port}/')
+        url = f'http://localhost:{port}/{path}' if path else f'http://localhost:{port}/'
+        resp = requests.get(url, timeout=5)
         return HttpResponse(resp.content, status=resp.status_code)
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
@@ -52,5 +47,5 @@ def flet_app(request, path=''):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
-    re_path(r'^(?P<path>.*)$', flet_app),  # Sert le frontend pour toutes les autres URLs
+    re_path(r'^(?P<path>.*)$', serve_flet),
 ]

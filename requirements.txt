@@ -27,8 +27,10 @@ pydantic_core==2.46.4
 PyJWT==2.13.0
 repath==0.9.0
 reportlab==4.5.1
+requests==2.34.2
 six==1.17.0
 sqlparse==0.5.5
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2026.2
+urllib3==2.7.0

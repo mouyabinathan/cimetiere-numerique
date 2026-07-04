@@ -143,3 +143,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'bienvenupc1@gmail.com'
 EMAIL_HOST_PASSWORD = 'odeeqyjsmvosfjvt'
 DEFAULT_FROM_EMAIL = 'Cimetière Municipal <bienvenupc1@gmail.com>'
+
+# Servir les fichiers statiques du frontend
+import os
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frontend'),
+]
