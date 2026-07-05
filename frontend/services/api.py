@@ -1,8 +1,7 @@
 import httpx
 from config import API_URL
 
-client = httpx.Client(timeout=30.0)
-
+client = httpx.Client(timeout=120.0)  # Augmenté à 120 secondes
 
 def get_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
