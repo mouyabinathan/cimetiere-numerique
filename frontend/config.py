@@ -1,5 +1,5 @@
-API_URL = "https://corsproxy.io/?https://cimetiere-numerique-1.onrender.com/api"
-LOGIN_URL = f"{API_URL}/api/users/login"
+API_URL = "https://cimetiere-numerique.onrender.com/api"
+LOGIN_URL = f"{API_URL}/users/login"  # Notez le retrait de /api
 PRIMARY   = "#0033FF"
 SECONDARY = "#977DFF"
 DARK      = "#00033D"
