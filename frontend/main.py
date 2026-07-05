@@ -81,5 +81,5 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 8501))
-    ft.app(target=main, port=8501, view=None)
+    port = int(os.environ.get("PORT", 10000))
+    ft.app(target=main, port=port, view=None)
