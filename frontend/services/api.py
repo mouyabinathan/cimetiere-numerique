@@ -11,9 +11,9 @@ def get_headers(token: str) -> dict:
 
 # ---- AUTH ----
 def login(email: str, password: str):
-    print(f">>> Tentative de connexion à : {url}")  # ← Pour déboguer
-
-    return client.post(f"{API_URL}/users/login", json={"email": email, "password": password})
+    login_url = f"{API_URL}/users/login"  # ← Renommé en login_url
+    print(f">>> Tentative de connexion à : {login_url}")
+    return client.post(login_url, json={"email": email, "password": password})
 
 def verify_mfa(email: str, code: str):
     return client.post(f"{API_URL}/users/verify-mfa", json={"email": email, "code": code})
