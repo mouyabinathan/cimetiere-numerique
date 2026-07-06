@@ -1,4 +1,5 @@
 API_URL = "https://cimetiere-numerique.onrender.com/api"
+print(f">>> API_URL = {API_URL}")  # ← Pour déboguer
 LOGIN_URL = f"{API_URL}/users/login"  # Notez le retrait de /api
 PRIMARY   = "#0033FF"
 SECONDARY = "#977DFF"

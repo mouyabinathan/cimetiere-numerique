@@ -3,12 +3,16 @@ from config import API_URL
 
 client = httpx.Client(timeout=120.0)  # Augmenté à 120 secondes
 
+print(f">>> API_URL dans api.py = {API_URL}")  # ← Pour déboguer
+
 def get_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
 # ---- AUTH ----
 def login(email: str, password: str):
+    print(f">>> Tentative de connexion à : {url}")  # ← Pour déboguer
+
     return client.post(f"{API_URL}/users/login", json={"email": email, "password": password})
 
 def verify_mfa(email: str, code: str):
