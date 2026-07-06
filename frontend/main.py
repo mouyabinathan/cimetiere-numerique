@@ -80,6 +80,8 @@ def main(page: ft.Page):
     boot()
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 10000))
-    ft.app(target=main, port=port, view=None)
+   import os
+   import flet as ft
+
+   port = int(os.environ.get("PORT", 10000))
+   ft.run(target=main, port=port, view=ft.WEB_BROWSER)
