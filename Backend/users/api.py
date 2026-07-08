@@ -39,6 +39,10 @@ def login(request, data: LoginSchema):
         return {"error": "Utilisateur introuvable"}
     if not user.check_password(data.password):
         return {"error": "Mot de passe incorrect"}
+    
+    # ⚠️ MFA désactivé temporairement pour résoudre le timeout
+    # Le code MFA est commenté mais conservé pour réactivation ultérieure
+    """
     code = str(random.randint(100000, 999999))
     user.mfa_code = code
     user.mfa_expires_at = timezone.now() + timedelta(minutes=10)
@@ -50,6 +54,18 @@ def login(request, data: LoginSchema):
     except Exception as ex:
         print(f">>> Echec envoi email (le code reste valide) : {ex}")
     return {"message": "Code MFA envoyé"}
+    """
+    
+    # ✅ Connexion directe sans MFA
+    from users.auth import generer_token
+    token = generer_token(user)
+    return {
+        "message": "Connexion réussie",
+        "role": user.role,
+        "token": token,
+        "email": user.email,
+        "nom": f"{user.first_name} {user.last_name}".strip() or user.username,
+    }
     
 @router.post("/verify-mfa")
 def verify_mfa(request, data: MFAVerifySchema):
