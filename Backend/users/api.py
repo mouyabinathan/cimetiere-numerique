@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 import random
+import threading
 from users.schemas import RegisterSchema, LoginSchema, MFAVerifySchema   
 from users.auth import AuthBearer, AdminOnly
 from users.schemas import UserOutSchema
@@ -40,32 +41,25 @@ def login(request, data: LoginSchema):
     if not user.check_password(data.password):
         return {"error": "Mot de passe incorrect"}
     
-    # ⚠️ MFA désactivé temporairement pour résoudre le timeout
-    # Le code MFA est commenté mais conservé pour réactivation ultérieure
-    """
+    # ✅ MFA réactivé avec envoi asynchrone
     code = str(random.randint(100000, 999999))
     user.mfa_code = code
     user.mfa_expires_at = timezone.now() + timedelta(minutes=10)
     user.save()
-    print(f">>> Code MFA pour {user.email} : {code}")
-    try:
-        from users.email import envoyer_code_mfa
-        envoyer_code_mfa(user.email, code)
-    except Exception as ex:
-        print(f">>> Echec envoi email (le code reste valide) : {ex}")
-    return {"message": "Code MFA envoyé"}
-    """
     
-    # ✅ Connexion directe sans MFA
-    from users.auth import generer_token
-    token = generer_token(user)
-    return {
-        "message": "Connexion réussie",
-        "role": user.role,
-        "token": token,
-        "email": user.email,
-        "nom": f"{user.first_name} {user.last_name}".strip() or user.username,
-    }
+    # ✅ Envoi de l'email en arrière-plan (ne bloque pas la réponse)
+    def send_email_async():
+        try:
+            from users.email import envoyer_code_mfa
+            envoyer_code_mfa(user.email, code)
+        except Exception as ex:
+            print(f">>> Echec envoi email : {ex}")
+    
+    thread = threading.Thread(target=send_email_async)
+    thread.start()
+    
+    # ✅ Réponse immédiate (sans attendre l'email)
+    return {"message": "Code MFA envoyé"}
     
 @router.post("/verify-mfa")
 def verify_mfa(request, data: MFAVerifySchema):
@@ -82,12 +76,12 @@ def verify_mfa(request, data: MFAVerifySchema):
     from users.auth import generer_token
     token = generer_token(user)
     return {
-    "message": "Connexion réussie",
-    "role":    user.role,
-    "token":   token,
-    "email":   user.email,
-    "nom":     f"{user.first_name} {user.last_name}".strip() or user.username,
-        }
+        "message": "Connexion réussie",
+        "role": user.role,
+        "token": token,
+        "email": user.email,
+        "nom": f"{user.first_name} {user.last_name}".strip() or user.username,
+    }
 
     
 @router.get("/list", response=List[UserOutSchema], auth=AdminOnly())
