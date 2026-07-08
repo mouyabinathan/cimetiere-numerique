@@ -31,7 +31,7 @@ def register(request, data: RegisterSchema):
         role=data.role
     )
     return {"message": "Compte créé avec succès", "id": user.id}
-
+    
 @router.post("/login")
 def login(request, data: LoginSchema):
     try:
@@ -41,24 +41,22 @@ def login(request, data: LoginSchema):
     if not user.check_password(data.password):
         return {"error": "Mot de passe incorrect"}
     
-    # ✅ MFA réactivé avec envoi asynchrone
+    # ✅ MFA avec envoi synchronisé (mais rapide)
     code = str(random.randint(100000, 999999))
     user.mfa_code = code
     user.mfa_expires_at = timezone.now() + timedelta(minutes=10)
     user.save()
     
-    # ✅ Envoi de l'email en arrière-plan (ne bloque pas la réponse)
-    def send_email_async():
-        try:
-            from users.email import envoyer_code_mfa
-            envoyer_code_mfa(user.email, code)
-        except Exception as ex:
-            print(f">>> Echec envoi email : {ex}")
+    # ✅ Envoi de l'email directement (sans thread)
+    try:
+        from users.email import envoyer_code_mfa
+        envoyer_code_mfa(user.email, code)
+        print(f">>> Email MFA envoyé à {user.email}")
+    except Exception as ex:
+        print(f">>> Erreur envoi email : {ex}")
+        # On continue même si l'email échoue (le code est en base)
     
-    thread = threading.Thread(target=send_email_async)
-    thread.start()
-    
-    # ✅ Réponse immédiate (sans attendre l'email)
+    # ✅ Réponse immédiate
     return {"message": "Code MFA envoyé"}
     
 @router.post("/verify-mfa")
