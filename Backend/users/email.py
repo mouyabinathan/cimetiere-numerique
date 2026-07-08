@@ -1,10 +1,15 @@
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 
+from django.core.mail import send_mail, EmailMessage
+from django.conf import settings
+
 def envoyer_code_mfa(email, code):
-    send_mail(
-        subject="Votre code de connexion",
-        message=f"""
+    print(f">>> ENVOI EMAIL à {email} avec code {code}")  # ← AJOUTER
+    try:
+        send_mail(
+            subject="Votre code de connexion",
+            message=f"""
 Bonjour,
 
 Votre code de vérification est : {code}
@@ -12,12 +17,16 @@ Votre code de vérification est : {code}
 Ce code expire dans 10 minutes.
 
 Cimetière Municipal de Pointe-Noire
-        """,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email],
-        fail_silently=False,
-    )
-
+            """,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        print(f">>> EMAIL ENVOYÉ avec succès à {email}")  # ← AJOUTER
+    except Exception as e:
+        print(f">>> ERREUR ENVOI EMAIL : {e}")  # ← AJOUTER
+        raise
+    
 def envoyer_confirmation_reservation(email, nom_defunt, numero_caveau):
     send_mail(
         subject="Confirmation de votre réservation",
