@@ -109,18 +109,27 @@ def _construire(page, state, nav, zones, blocs, caveaux):
     tab_content  = {"ref": None}
     filtre_btns  = {}
 
-    # ==== TAB ZONES ====
+    # ===== Champs de formulaire (reutilisables) =====
+    def champ_texte(label, value="", hint="", width=None):
+        return ft.TextField(
+            label=label,
+            value=value,
+            hint_text=hint,
+            border_color=SECONDARY,
+            color=ft.Colors.WHITE,
+            bgcolor=BG_DARK,
+            label_style=ft.TextStyle(color=SECONDARY),
+            expand=True if width is None else False,
+            width=width
+        )
+
+    # ===== TAB ZONES =====
     def build_tab_zones():
-        nom_z    = ft.TextField(label="Nom de la zone *", width=340, border_color=SECONDARY,
-                                color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                                label_style=ft.TextStyle(color=SECONDARY))
-        desc_z   = ft.TextField(label="Description", width=340, border_color=SECONDARY,
-                                color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                                label_style=ft.TextStyle(color=SECONDARY),
-                                multiline=True, min_lines=2, max_lines=3)
-        expl_z   = ft.Checkbox(label="Exploitable", value=True,
-                               active_color=PRIMARY, check_color=ft.Colors.WHITE)
-        msg_z    = ft.Text("", size=12, color=ft.Colors.RED_400)
+        nom_z = champ_texte("Nom de la zone *")
+        desc_z = champ_texte("Description", multiline=True, min_lines=2, max_lines=3)
+        expl_z = ft.Checkbox(label="Exploitable", value=True,
+                             active_color=PRIMARY, check_color=ft.Colors.WHITE)
+        msg_z = ft.Text("", size=12, color=ft.Colors.RED_400)
 
         def do_create():
             try:
@@ -151,7 +160,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
         def zone_row(z):
             color = "#00CC77" if z["exploitable"] else "#555555"
             label = "Exploitable" if z["exploitable"] else "Non exploitable"
-            nb    = len([b for b in blocs if b["zone_id"] == z["id"]])
+            nb = len([b for b in blocs if b["zone_id"] == z["id"]])
             return ft.Container(
                 content=ft.Row(controls=[
                     ft.Container(width=4, height=44, bgcolor=color, border_radius=2),
@@ -169,37 +178,42 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                 border=ft.Border.all(1, SECONDARY + "20")
             )
 
-        return ft.Row(controls=[
+        # Formulaire + liste en ResponsiveRow
+        return ft.ResponsiveRow(controls=[
             ft.Container(
                 content=ft.Column(controls=[
                     ft.Text("Nouvelle zone", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                     ft.Divider(color=SECONDARY + "30", height=1),
                     nom_z, desc_z, expl_z, msg_z,
-                    btn("Créer la zone", on_create, width=340, icon=ft.Icons.ADD)
+                    btn("Créer la zone", on_create, icon=ft.Icons.ADD, expand=True)
                 ], spacing=12, tight=True),
                 bgcolor=BG_CARD, border_radius=12, padding=20,
-                border=ft.Border.all(1, SECONDARY + "25"), width=380
+                border=ft.Border.all(1, SECONDARY + "25"),
+                col={"sm": 12, "md": 5, "lg": 4}
             ),
-            ft.Column(controls=[
-                ft.Text(f"{len(zones)} zone(s)", size=12, color=SECONDARY),
-                ft.Column(
-                    controls=[zone_row(z) for z in zones] if zones else [
-                        ft.Text("Aucune zone créée", size=12, color=SECONDARY)
-                    ],
-                    spacing=8, scroll=ft.ScrollMode.AUTO, expand=True
-                )
-            ], spacing=10, expand=True)
+            ft.Container(
+                content=ft.Column(controls=[
+                    ft.Text(f"{len(zones)} zone(s)", size=12, color=SECONDARY),
+                    ft.Column(
+                        controls=[zone_row(z) for z in zones] if zones else [
+                            ft.Text("Aucune zone créée", size=12, color=SECONDARY)
+                        ],
+                        spacing=8, scroll=ft.ScrollMode.AUTO, expand=True
+                    )
+                ], spacing=10, expand=True),
+                col={"sm": 12, "md": 7, "lg": 8},
+                expand=True
+            )
         ], spacing=20, expand=True)
 
-    # ==== TAB BLOCS ====
+    # ===== TAB BLOCS =====
     def build_tab_blocs():
-        nom_b  = ft.TextField(label="Nom du bloc *", width=340, border_color=SECONDARY,
-                              color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                              label_style=ft.TextStyle(color=SECONDARY))
+        nom_b = champ_texte("Nom du bloc *")
         zone_dd = ft.Dropdown(
             label="Zone parente",
             options=[ft.dropdown.Option(key=str(z["id"]), text=z["nom"]) for z in zones],
-            width=340, border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK
+            border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK,
+            expand=True
         )
         msg_b = ft.Text("", size=12, color=ft.Colors.RED_400)
 
@@ -245,41 +259,45 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                 border=ft.Border.all(1, SECONDARY + "20")
             )
 
-        return ft.Row(controls=[
+        return ft.ResponsiveRow(controls=[
             ft.Container(
                 content=ft.Column(controls=[
                     ft.Text("Nouveau bloc", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                     ft.Divider(color=SECONDARY + "30", height=1),
                     zone_dd if zones else ft.Text("⚠ Créez d'abord une zone", size=12, color="#FF9922"),
                     nom_b, msg_b,
-                    btn("Créer le bloc", on_create, width=340, icon=ft.Icons.ADD, disabled=(not zones))
+                    btn("Créer le bloc", on_create, icon=ft.Icons.ADD, disabled=(not zones), expand=True)
                 ], spacing=12, tight=True),
                 bgcolor=BG_CARD, border_radius=12, padding=20,
-                border=ft.Border.all(1, SECONDARY + "25"), width=380
+                border=ft.Border.all(1, SECONDARY + "25"),
+                col={"sm": 12, "md": 5, "lg": 4}
             ),
-            ft.Column(controls=[
-                ft.Text(f"{len(blocs)} bloc(s)", size=12, color=SECONDARY),
-                ft.Column(
-                    controls=[bloc_row(b) for b in blocs] if blocs else [
-                        ft.Text("Aucun bloc créé", size=12, color=SECONDARY)
-                    ],
-                    spacing=8, scroll=ft.ScrollMode.AUTO, expand=True
-                )
-            ], spacing=10, expand=True)
+            ft.Container(
+                content=ft.Column(controls=[
+                    ft.Text(f"{len(blocs)} bloc(s)", size=12, color=SECONDARY),
+                    ft.Column(
+                        controls=[bloc_row(b) for b in blocs] if blocs else [
+                            ft.Text("Aucun bloc créé", size=12, color=SECONDARY)
+                        ],
+                        spacing=8, scroll=ft.ScrollMode.AUTO, expand=True
+                    )
+                ], spacing=10, expand=True),
+                col={"sm": 12, "md": 7, "lg": 8},
+                expand=True
+            )
         ], spacing=20, expand=True)
 
-    # ==== TAB CAVEAUX ====
+    # ===== TAB CAVEAUX =====
     def build_tab_caveaux():
-        numero_c = ft.TextField(label="Numéro (ex: C003) *", width=340, border_color=SECONDARY,
-                                color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                                label_style=ft.TextStyle(color=SECONDARY))
-        bloc_dd  = ft.Dropdown(
+        numero_c = champ_texte("Numéro (ex: C003) *")
+        bloc_dd = ft.Dropdown(
             label="Bloc",
             options=[ft.dropdown.Option(
                 key=str(b["id"]),
                 text=f"{b['nom']} — {zone_index.get(b['zone_id'],'?')}"
             ) for b in blocs],
-            width=340, border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK
+            border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK,
+            expand=True
         )
         statut_dd = ft.Dropdown(
             label="Statut initial", value="DISPONIBLE",
@@ -287,23 +305,14 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                 ft.dropdown.Option(key="DISPONIBLE",    text="Disponible"),
                 ft.dropdown.Option(key="INEXPLOITABLE", text="Inexploitable"),
             ],
-            width=340, border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK
+            border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK,
+            expand=True
         )
-        lat_c  = ft.TextField(label="Latitude",  width=162, border_color=SECONDARY,
-                              color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                              label_style=ft.TextStyle(color=SECONDARY),
-                              hint_text="-4.7761", hint_style=ft.TextStyle(color=SECONDARY + "60"))
-        lng_c  = ft.TextField(label="Longitude", width=162, border_color=SECONDARY,
-                              color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                              label_style=ft.TextStyle(color=SECONDARY),
-                              hint_text="11.8635", hint_style=ft.TextStyle(color=SECONDARY + "60"))
-        long_c = ft.TextField(label="Longueur (m)", value="2.0", width=162,
-                              border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                              label_style=ft.TextStyle(color=SECONDARY))
-        larg_c = ft.TextField(label="Largeur (m)",  value="1.0", width=162,
-                              border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK,
-                              label_style=ft.TextStyle(color=SECONDARY))
-        msg_c  = ft.Text("", size=12, color=ft.Colors.RED_400)
+        lat_c = champ_texte("Latitude", hint="-4.7761")
+        lng_c = champ_texte("Longitude", hint="11.8635")
+        long_c = champ_texte("Longueur (m)", value="2.0")
+        larg_c = champ_texte("Largeur (m)", value="1.0")
+        msg_c = ft.Text("", size=12, color=ft.Colors.RED_400)
 
         def do_create():
             try:
@@ -337,9 +346,9 @@ def _construire(page, state, nav, zones, blocs, caveaux):
             page.run_thread(do_create)
 
         def caveau_row(c):
-            color    = STATUT_COLORS.get(c["statut"], "#555555")
+            color = STATUT_COLORS.get(c["statut"], "#555555")
             bloc_nom = bloc_index.get(c["bloc_id"], {}).get("nom", "—")
-            geo      = f"📍 {c['latitude']:.4f}, {c['longitude']:.4f}" if c.get("latitude") else "Non géolocalisé"
+            geo = f"📍 {c['latitude']:.4f}, {c['longitude']:.4f}" if c.get("latitude") else "Non géolocalisé"
             return ft.Container(
                 content=ft.Row(controls=[
                     ft.Container(width=4, height=50, bgcolor=color, border_radius=2),
@@ -365,33 +374,44 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                 border=ft.Border.all(1, SECONDARY + "20")
             )
 
-        return ft.Row(controls=[
+        return ft.ResponsiveRow(controls=[
             ft.Container(
                 content=ft.Column(controls=[
                     ft.Text("Nouveau caveau", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                     ft.Divider(color=SECONDARY + "30", height=1),
                     bloc_dd if blocs else ft.Text("⚠ Créez d'abord un bloc", size=12, color="#FF9922"),
                     numero_c, statut_dd,
-                    ft.Row(controls=[lat_c, lng_c], spacing=10),
-                    ft.Row(controls=[long_c, larg_c], spacing=10),
+                    ft.ResponsiveRow(controls=[
+                        ft.Container(lat_c, col={"sm": 12, "md": 6}),
+                        ft.Container(lng_c, col={"sm": 12, "md": 6}),
+                    ], spacing=10),
+                    ft.ResponsiveRow(controls=[
+                        ft.Container(long_c, col={"sm": 12, "md": 6}),
+                        ft.Container(larg_c, col={"sm": 12, "md": 6}),
+                    ], spacing=10),
                     msg_c,
-                    btn("Créer le caveau", on_create, width=340, icon=ft.Icons.ADD, disabled=(not blocs))
+                    btn("Créer le caveau", on_create, icon=ft.Icons.ADD, disabled=(not blocs), expand=True)
                 ], spacing=12, tight=True),
                 bgcolor=BG_CARD, border_radius=12, padding=20,
-                border=ft.Border.all(1, SECONDARY + "25"), width=380
+                border=ft.Border.all(1, SECONDARY + "25"),
+                col={"sm": 12, "md": 5, "lg": 4}
             ),
-            ft.Column(controls=[
-                ft.Text(f"{len(caveaux)} caveau(x)", size=12, color=SECONDARY),
-                ft.Column(
-                    controls=[caveau_row(c) for c in caveaux] if caveaux else [
-                        ft.Text("Aucun caveau créé", size=12, color=SECONDARY)
-                    ],
-                    spacing=6, scroll=ft.ScrollMode.AUTO, expand=True
-                )
-            ], spacing=10, expand=True)
+            ft.Container(
+                content=ft.Column(controls=[
+                    ft.Text(f"{len(caveaux)} caveau(x)", size=12, color=SECONDARY),
+                    ft.Column(
+                        controls=[caveau_row(c) for c in caveaux] if caveaux else [
+                            ft.Text("Aucun caveau créé", size=12, color=SECONDARY)
+                        ],
+                        spacing=6, scroll=ft.ScrollMode.AUTO, expand=True
+                    )
+                ], spacing=10, expand=True),
+                col={"sm": 12, "md": 7, "lg": 8},
+                expand=True
+            )
         ], spacing=20, expand=True)
 
-    # ==== BARRE D'ONGLETS ====
+    # ===== BARRE D'ONGLETS =====
     tab_container = ft.Container(content=build_tab_zones(), expand=True)
     tab_content["ref"] = tab_container
 
@@ -428,29 +448,27 @@ def _construire(page, state, nav, zones, blocs, caveaux):
         mk_tab("Zones",   "zones",   ft.Icons.LAYERS_OUTLINED),
         mk_tab("Blocs",   "blocs",   ft.Icons.GRID_VIEW_OUTLINED),
         mk_tab("Caveaux", "caveaux", ft.Icons.PLACE_OUTLINED),
-    ], spacing=10)
+    ], spacing=10, scroll=ft.ScrollMode.AUTO)
 
     main_content = ft.Container(
         content=ft.Column(
             controls=[
-                ft.Row(
-                    controls=[
-                        ft.Column(controls=[
-                            ft.Text("Paramètres", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                            ft.Text("Configuration du terrain", size=12, color=SECONDARY),
-                        ], spacing=2),
-                        ft.Container(
-                            content=ft.Row(controls=[
-                                ft.Icon(ft.Icons.REFRESH, size=14, color=ft.Colors.WHITE),
-                                ft.Text("Actualiser", size=12, color=ft.Colors.WHITE)
-                            ], spacing=6),
-                            bgcolor=PRIMARY, border_radius=8,
-                            padding=ft.Padding.symmetric(horizontal=14, vertical=8),
-                            ink=True, on_click=lambda e: page_parametres(page, state, nav)
-                        )
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                ),
+                ft.ResponsiveRow(controls=[
+                    ft.Column(controls=[
+                        ft.Text("Paramètres", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                        ft.Text("Configuration du terrain", size=12, color=SECONDARY),
+                    ], spacing=2, col={"sm": 12, "md": 8}),
+                    ft.Container(
+                        content=ft.Row(controls=[
+                            ft.Icon(ft.Icons.REFRESH, size=14, color=ft.Colors.WHITE),
+                            ft.Text("Actualiser", size=12, color=ft.Colors.WHITE)
+                        ], spacing=6),
+                        bgcolor=PRIMARY, border_radius=8,
+                        padding=ft.Padding.symmetric(horizontal=14, vertical=8),
+                        ink=True, on_click=lambda e: page_parametres(page, state, nav),
+                        col={"sm": 12, "md": 4}
+                    )
+                ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 tab_row,
                 tab_container,
             ],
