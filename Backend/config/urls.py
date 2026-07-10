@@ -15,23 +15,8 @@ api.add_router("/reservations", reservations_router)
 api.add_router("/facturation", facturation_router)
 api.add_router("/reporting", reporting_router)
 
-from django.http import HttpResponse
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
-def make_superuser(request):
-    user = User.objects.get(email="mouyabinatan@gmail.com")
-    user.is_superuser = True
-    user.is_staff = True
-    user.save()
-    return HttpResponse("Superuser créé avec succès.")
-
-
-
 # ---------- URLs ----------
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
-    path('make-superuser/', make_superuser),
 ]
-
