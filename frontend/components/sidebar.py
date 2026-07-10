@@ -29,16 +29,12 @@ def nav_item(icon, label, active=False, badge=None, on_click=None):
 
 
 def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
-    """
-    state : {"token": ..., "role": ..., "user": ..., "resa_count": ...}
-    nav   : dict de callbacks {"dashboard": fn, "carte": fn, ...}
-    """
     is_mobile = state.get("is_mobile", False)
 
     def goto(key):
         def handler(e):
-            if is_mobile and page.drawer:
-                page.drawer.open = False
+            if is_mobile and hasattr(page, 'navigation_drawer') and page.navigation_drawer:
+                page.navigation_drawer.open = False
                 page.update()
             nav(key)
         return handler
@@ -51,7 +47,6 @@ def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
     role = state.get("role", "CLIENT")
     is_admin        = role == "ADMIN"
     is_staff        = role in ("ADMIN", "SECRETARIAT", "AGENT")
-    is_client       = role == "CLIENT"
 
     # Construction des nav items selon le rôle
     nav_controls = [
@@ -96,7 +91,7 @@ def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
                      active=(active_key == "parametres"), on_click=goto("parametres")),
         ]
 
-    # ✅ Menu desktop (version complète)
+    # ✅ Menu desktop
     desktop_menu = ft.Container(
         content=ft.Column(
             controls=[
@@ -118,13 +113,9 @@ def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
                     padding=ft.Padding.only(left=20, right=20, top=20, bottom=16),
                     border=ft.Border.only(bottom=ft.BorderSide(1, SECONDARY + "25"))
                 ),
-                # Nav items filtrés selon le rôle
+                # Nav items
                 ft.Container(
-                    content=ft.Column(
-                        controls=nav_controls,
-                        spacing=2,
-                        scroll=ft.ScrollMode.AUTO,
-                    ),
+                    content=ft.Column(controls=nav_controls, spacing=2, scroll=ft.ScrollMode.AUTO),
                     expand=True
                 ),
                 # User footer
@@ -164,8 +155,8 @@ def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
         width=220,
     )
 
-    # ✅ Menu mobile (Drawer)
-    mobile_drawer = ft.Drawer(
+    # ✅ Menu mobile (NavigationDrawer)
+    mobile_drawer = ft.NavigationDrawer(
         content=ft.Container(
             content=ft.Column(
                 controls=[
@@ -189,11 +180,7 @@ def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
                     ),
                     # Nav items
                     ft.Container(
-                        content=ft.Column(
-                            controls=nav_controls,
-                            spacing=2,
-                            scroll=ft.ScrollMode.AUTO,
-                        ),
+                        content=ft.Column(controls=nav_controls, spacing=2, scroll=ft.ScrollMode.AUTO),
                         expand=True
                     ),
                     # User footer
@@ -234,19 +221,17 @@ def build_sidebar(page: ft.Page, state: dict, active_key: str, nav):
         ),
         width=280,
         bgcolor=DARK,
-        shape=ft.RoundedRectangleBorder(radius=ft.BorderRadius.only(top_right=12, bottom_right=12)),
     )
 
-    # ✅ Retourne selon le mode
+    # ✅ Retour selon le mode
     if is_mobile:
-        page.drawer = mobile_drawer
-        # On retourne un petit bouton hamburger pour ouvrir le drawer
+        page.navigation_drawer = mobile_drawer
         return ft.Container(
             content=ft.IconButton(
                 icon=ft.Icons.MENU,
                 icon_size=24,
                 icon_color=ft.Colors.WHITE,
-                on_click=lambda e: page.drawer.open_toggle()
+                on_click=lambda e: page.navigation_drawer.open_toggle() if page.navigation_drawer else None
             ),
             padding=ft.Padding.only(left=8, top=4, bottom=4),
             bgcolor=BG_DARK

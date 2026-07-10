@@ -3,12 +3,6 @@ from config import PRIMARY, SECONDARY, BG_CARD
 
 
 def build_header(page: ft.Page, state: dict):
-    """
-    En-tête responsive avec :
-    - Bouton hamburger (mobile) pour ouvrir le drawer
-    - Barre de recherche (cachée sur très petit écran)
-    - Notifications et profil utilisateur
-    """
     is_mobile = state.get("is_mobile", False)
     
     user_initials = "?"
@@ -21,50 +15,32 @@ def build_header(page: ft.Page, state: dict):
     # ✅ Contrôles du header
     controls = []
 
-    # ✅ Bouton hamburger (visible uniquement sur mobile)
+    # ✅ Bouton hamburger (mobile)
     if is_mobile:
         controls.append(
             ft.IconButton(
                 icon=ft.Icons.MENU,
                 icon_size=24,
                 icon_color=ft.Colors.WHITE,
-                on_click=lambda e: page.drawer.open_toggle() if page.drawer else None,
+                on_click=lambda e: page.navigation_drawer.open_toggle() if hasattr(page, 'navigation_drawer') and page.navigation_drawer else None,
                 tooltip="Menu",
-                style=ft.ButtonStyle(
-                    overlay_color=ft.Colors.TRANSPARENT,
-                )
+                style=ft.ButtonStyle(overlay_color=ft.Colors.TRANSPARENT)
             )
         )
 
-    # ✅ Barre de recherche (réduite ou masquée sur mobile)
-    if is_mobile:
-        # Sur mobile : champ de recherche plus petit
-        search_field = ft.TextField(
-            hint_text="Rechercher...",
-            prefix_icon=ft.Icons.SEARCH,
-            border=ft.InputBorder.NONE,
-            color=ft.Colors.WHITE,
-            hint_style=ft.TextStyle(color=SECONDARY + "80", size=12),
-            cursor_color=PRIMARY,
-            bgcolor=ft.Colors.TRANSPARENT,
-            height=34,
-            text_size=12,
-            expand=True
-        )
-    else:
-        # Sur desktop : champ de recherche complet
-        search_field = ft.TextField(
-            hint_text="Rechercher un caveau, défunt... (Entrée pour valider)",
-            prefix_icon=ft.Icons.SEARCH,
-            border=ft.InputBorder.NONE,
-            color=ft.Colors.WHITE,
-            hint_style=ft.TextStyle(color=SECONDARY + "80", size=13),
-            cursor_color=PRIMARY,
-            bgcolor=ft.Colors.TRANSPARENT,
-            height=38,
-            text_size=13,
-            expand=True
-        )
+    # ✅ Barre de recherche
+    search_field = ft.TextField(
+        hint_text="Rechercher..." if is_mobile else "Rechercher un caveau, défunt... (Entrée pour valider)",
+        prefix_icon=ft.Icons.SEARCH,
+        border=ft.InputBorder.NONE,
+        color=ft.Colors.WHITE,
+        hint_style=ft.TextStyle(color=SECONDARY + "80", size=12 if is_mobile else 13),
+        cursor_color=PRIMARY,
+        bgcolor=ft.Colors.TRANSPARENT,
+        height=34 if is_mobile else 38,
+        text_size=12 if is_mobile else 13,
+        expand=True
+    )
 
     controls.append(
         ft.Container(
@@ -105,7 +81,7 @@ def build_header(page: ft.Page, state: dict):
         )
     )
 
-    # ✅ Profil utilisateur
+    # ✅ Profil
     controls.append(
         ft.Container(
             content=ft.Text(user_initials, size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
@@ -114,7 +90,6 @@ def build_header(page: ft.Page, state: dict):
         )
     )
 
-    # ✅ Ajustement du padding selon le mode
     padding = ft.Padding.symmetric(horizontal=12 if is_mobile else 24, vertical=8 if is_mobile else 12)
 
     return ft.Container(

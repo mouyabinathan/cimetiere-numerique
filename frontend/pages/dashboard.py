@@ -75,7 +75,7 @@ def _construire(page, state, nav, stats):
     sidebar = build_sidebar(page, state, "dashboard", nav)
     header = build_header(page, state)
 
-    # ✅ KPI en ResponsiveRow (4 colonnes sur desktop, 2 sur tablette, 1 sur mobile)
+    # ✅ KPI
     kpi_row = ft.ResponsiveRow(
         controls=[
             ft.Container(
@@ -102,10 +102,9 @@ def _construire(page, state, nav, stats):
         spacing=12
     )
 
-    # ✅ Carte + Activité en ResponsiveRow
+    # ✅ Carte + Activité
     content_row = ft.ResponsiveRow(
         controls=[
-            # Carte du cimetière
             ft.Container(
                 content=ft.Column(
                     controls=[
@@ -152,7 +151,6 @@ def _construire(page, state, nav, stats):
                 border=ft.Border.all(1, SECONDARY + "25"),
                 col={"sm": 12, "md": 6, "lg": 7}
             ),
-            # Activité récente
             ft.Container(
                 content=ft.Column(
                     controls=[
