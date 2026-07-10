@@ -8,6 +8,7 @@ from facturation.api import router as facturation_router
 from terrain.reporting import router as reporting_router
 from django.http import HttpResponse
 import subprocess
+import os
 
 # ---------- API ----------
 api = NinjaAPI(title="Gestion Cimetière API", version="1.0.0")
@@ -20,11 +21,12 @@ api.add_router("/reporting", reporting_router)
 # ---------- Création superuser ----------
 def create_superuser(request):
     try:
+        # On exécute le script dans le dossier Backend
+        script_path = os.path.join(os.path.dirname(__file__), 'create_superuser.py')
         result = subprocess.run(
-            ['python', 'Backend/create_superuser.py'],
+            ['python', script_path],
             capture_output=True,
-            text=True,
-            cwd='.'  # Ajoute ce paramètre pour être sûr du chemin
+            text=True
         )
         return HttpResponse(result.stdout + result.stderr, content_type="text/plain")
     except Exception as e:
