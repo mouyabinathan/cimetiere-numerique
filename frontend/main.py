@@ -20,19 +20,12 @@ from pages.users import page_users
 
 
 def main(page: ft.Page):
-    # ✅ Configuration responsive
     page.title = "CimétièrePRO — Pointe-Noire"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 0
     page.bgcolor = BG_DARK
     page.window.width = 1280
     page.window.height = 800
-    page.window.min_width = 360
-    page.window.min_height = 600
-
-    # ✅ Détection mobile
-    def is_mobile():
-        return page.window.width < 768
 
     # ---- État global partagé ----
     state = {
@@ -42,7 +35,6 @@ def main(page: ft.Page):
         "user_email": None,
         "resa_count": 0,
         "notif_count": 0,
-        "is_mobile": is_mobile(),
     }
 
     # ---- Navigation centralisée ----
@@ -67,7 +59,6 @@ def main(page: ft.Page):
         state["role"]       = data["role"]
         state["user_nom"]   = data.get("nom", data.get("email", "Utilisateur"))
         state["user_email"] = data.get("email", "")
-        state["is_mobile"]  = is_mobile()
         nav("dashboard")
 
     def do_logout():
@@ -81,19 +72,12 @@ def main(page: ft.Page):
     def on_register_click():
         page_register(page, lambda: page_login(page, on_login_success, on_register_click))
 
-    def on_resize(e):
-        state["is_mobile"] = is_mobile()
-        page.update()
-
-    page.on_resize = on_resize
-
     # ---- Boot ----
     def boot():
         page_login(page, on_login_success, on_register_click)
 
     page_splash(page)
     boot()
-
 
 if __name__ == "__main__":
     import os

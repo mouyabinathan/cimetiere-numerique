@@ -33,6 +33,7 @@ def _fetch(page, state, nav):
     try:
         res = api.get_carte_stats(state["token"])
         if res.status_code == 200:
+            # Aussi charger le nb de réservations en attente pour le badge
             try:
                 res_resa = api.get_reservations(state["token"])
                 if res_resa.status_code == 200:
@@ -70,137 +71,111 @@ def _erreur(page, state, nav, msg):
 
 
 def _construire(page, state, nav, stats):
-    is_mobile = state.get("is_mobile", False)
     taux = stats.get("taux_occupation", 0)
     sidebar = build_sidebar(page, state, "dashboard", nav)
-    header = build_header(page, state)
-
-    # ✅ KPI
-    kpi_row = ft.ResponsiveRow(
-        controls=[
-            ft.Container(
-                content=kpi_card("TOTAL CAVEAUX", stats["total"], "Capacité totale",
-                                ft.Icons.GRID_VIEW_OUTLINED, "#4D7FFF"),
-                col={"sm": 12, "md": 6, "lg": 3}
-            ),
-            ft.Container(
-                content=kpi_card("DISPONIBLES", stats["disponibles"], "Libres",
-                                ft.Icons.CHECK_CIRCLE_OUTLINED, "#00CC77"),
-                col={"sm": 12, "md": 6, "lg": 3}
-            ),
-            ft.Container(
-                content=kpi_card("RÉSERVÉS", stats["reserves"], "En attente",
-                                ft.Icons.PENDING_OUTLINED, "#FF9922"),
-                col={"sm": 12, "md": 6, "lg": 3}
-            ),
-            ft.Container(
-                content=kpi_card("TAUX OCCUPATION", f"{taux}%", f"{stats['occupes']} occupés",
-                                ft.Icons.DONUT_LARGE_OUTLINED, SECONDARY),
-                col={"sm": 12, "md": 6, "lg": 3}
-            ),
-        ],
-        spacing=12
-    )
-
-    # ✅ Carte + Activité
-    content_row = ft.ResponsiveRow(
-        controls=[
-            ft.Container(
-                content=ft.Column(
-                    controls=[
-                        ft.Row(
-                            controls=[
-                                ft.Text("Carte du cimetière", size=13,
-                                        weight=ft.FontWeight.W_500, color=ft.Colors.WHITE),
-                                ft.TextButton(
-                                    content=ft.Text("Plein écran →", size=11, color=PRIMARY),
-                                    on_click=lambda e: nav("carte")
-                                )
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        ft.Row(
-                            controls=[
-                                ft.Text("Taux d'occupation", size=11, color=SECONDARY),
-                                ft.Text(f"{taux}%", size=11, color=ft.Colors.WHITE)
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        ft.ProgressBar(
-                            value=taux / 100,
-                            bgcolor=SECONDARY + "20",
-                            color="#00CC77" if taux < 70 else "#FF9922" if taux < 90 else "#FF4444",
-                            border_radius=4
-                        ),
-                        ft.Container(height=8),
-                        ft.Row(
-                            controls=[
-                                ft.Row([ft.Container(width=8, height=8, bgcolor="#00CC77", border_radius=2),
-                                        ft.Text("Disponible", size=10, color=SECONDARY)], spacing=4),
-                                ft.Row([ft.Container(width=8, height=8, bgcolor="#FF4444", border_radius=2),
-                                        ft.Text("Occupé", size=10, color=SECONDARY)], spacing=4),
-                                ft.Row([ft.Container(width=8, height=8, bgcolor="#FF9922", border_radius=2),
-                                        ft.Text("Réservé", size=10, color=SECONDARY)], spacing=4),
-                            ],
-                            spacing=12
-                        ),
-                    ],
-                    spacing=10
-                ),
-                bgcolor=BG_CARD, border_radius=12, padding=16,
-                border=ft.Border.all(1, SECONDARY + "25"),
-                col={"sm": 12, "md": 6, "lg": 7}
-            ),
-            ft.Container(
-                content=ft.Column(
-                    controls=[
-                        ft.Row(
-                            controls=[
-                                ft.Text("Activité récente", size=13,
-                                        weight=ft.FontWeight.W_500, color=ft.Colors.WHITE),
-                                ft.TextButton(
-                                    content=ft.Text("Tout voir →", size=11, color=PRIMARY),
-                                    on_click=lambda e: nav("reservations")
-                                )
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        activity_row(ft.Icons.ASSIGNMENT_TURNED_IN_OUTLINED, "#4D7FFF",
-                                     "Réservation validée", "Secrétariat"),
-                        activity_row(ft.Icons.PAYMENT_OUTLINED, "#00CC77",
-                                     "Paiement MTN enregistré", "Facturation"),
-                        activity_row(ft.Icons.ARTICLE_OUTLINED, "#FF9922",
-                                     "Concession renouvelée", "Zone A"),
-                        activity_row(ft.Icons.PERSON_ADD_OUTLINED, "#4D7FFF",
-                                     "Nouveau client enregistré", "Portail citoyen"),
-                    ],
-                    spacing=0
-                ),
-                bgcolor=BG_CARD, border_radius=12, padding=16,
-                border=ft.Border.all(1, SECONDARY + "25"),
-                col={"sm": 12, "md": 6, "lg": 5}
-            )
-        ],
-        spacing=12
-    )
+    header  = build_header(page, state)
 
     main_content = ft.Container(
         content=ft.Column(
             controls=[
-                ft.Column(
+                ft.Text("Tableau de bord", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                ft.Text("Vue d'ensemble — Cimetière Municipal de Pointe-Noire", size=12, color=SECONDARY),
+                ft.Row(
                     controls=[
-                        ft.Text("Tableau de bord", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                        ft.Text("Vue d'ensemble — Cimetière Municipal de Pointe-Noire", size=12, color=SECONDARY),
+                        kpi_card("TOTAL CAVEAUX", stats["total"], "Capacité totale",
+                                 ft.Icons.GRID_VIEW_OUTLINED, "#4D7FFF"),
+                        kpi_card("DISPONIBLES", stats["disponibles"], "Libres",
+                                 ft.Icons.CHECK_CIRCLE_OUTLINED, "#00CC77"),
+                        kpi_card("RÉSERVÉS", stats["reserves"], "En attente",
+                                 ft.Icons.PENDING_OUTLINED, "#FF9922"),
+                        kpi_card("TAUX OCCUPATION", f"{taux}%", f"{stats['occupes']} occupés",
+                                 ft.Icons.DONUT_LARGE_OUTLINED, SECONDARY),
                     ],
-                    spacing=2
+                    spacing=12
                 ),
-                kpi_row,
-                content_row,
+                ft.Row(
+                    controls=[
+                        ft.Container(
+                            content=ft.Column(
+                                controls=[
+                                    ft.Row(
+                                        controls=[
+                                            ft.Text("Carte du cimetière", size=13,
+                                                    weight=ft.FontWeight.W_500, color=ft.Colors.WHITE),
+                                            ft.TextButton(
+                                                content=ft.Text("Plein écran →", size=11, color=PRIMARY),
+                                                on_click=lambda e: nav("carte")
+                                            )
+                                        ],
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                    ),
+                                    ft.Row(
+                                        controls=[
+                                            ft.Text("Taux d'occupation", size=11, color=SECONDARY),
+                                            ft.Text(f"{taux}%", size=11, color=ft.Colors.WHITE)
+                                        ],
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                    ),
+                                    ft.ProgressBar(
+                                        value=taux / 100,
+                                        bgcolor=SECONDARY + "20",
+                                        color="#00CC77" if taux < 70 else "#FF9922" if taux < 90 else "#FF4444",
+                                        border_radius=4
+                                    ),
+                                    ft.Container(height=8),
+                                    ft.Row(
+                                        controls=[
+                                            ft.Row([ft.Container(width=8, height=8, bgcolor="#00CC77", border_radius=2),
+                                                    ft.Text("Disponible", size=10, color=SECONDARY)], spacing=4),
+                                            ft.Row([ft.Container(width=8, height=8, bgcolor="#FF4444", border_radius=2),
+                                                    ft.Text("Occupé", size=10, color=SECONDARY)], spacing=4),
+                                            ft.Row([ft.Container(width=8, height=8, bgcolor="#FF9922", border_radius=2),
+                                                    ft.Text("Réservé", size=10, color=SECONDARY)], spacing=4),
+                                        ],
+                                        spacing=12
+                                    ),
+                                ],
+                                spacing=10
+                            ),
+                            bgcolor=BG_CARD, border_radius=12, padding=16,
+                            border=ft.Border.all(1, SECONDARY + "25"), expand=True
+                        ),
+                        ft.Container(
+                            content=ft.Column(
+                                controls=[
+                                    ft.Row(
+                                        controls=[
+                                            ft.Text("Activité récente", size=13,
+                                                    weight=ft.FontWeight.W_500, color=ft.Colors.WHITE),
+                                            ft.TextButton(
+                                                content=ft.Text("Tout voir →", size=11, color=PRIMARY),
+                                                on_click=lambda e: nav("reservations")
+                                            )
+                                        ],
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                    ),
+                                    activity_row(ft.Icons.ASSIGNMENT_TURNED_IN_OUTLINED, "#4D7FFF",
+                                                 "Réservation validée", "Secrétariat"),
+                                    activity_row(ft.Icons.PAYMENT_OUTLINED, "#00CC77",
+                                                 "Paiement MTN enregistré", "Facturation"),
+                                    activity_row(ft.Icons.ARTICLE_OUTLINED, "#FF9922",
+                                                 "Concession renouvelée", "Zone A"),
+                                    activity_row(ft.Icons.PERSON_ADD_OUTLINED, "#4D7FFF",
+                                                 "Nouveau client enregistré", "Portail citoyen"),
+                                ],
+                                spacing=0
+                            ),
+                            bgcolor=BG_CARD, border_radius=12, padding=16,
+                            border=ft.Border.all(1, SECONDARY + "25"), width=300
+                        )
+                    ],
+                    spacing=12
+                )
             ],
             spacing=16,
             expand=True
         ),
-        padding=ft.Padding.symmetric(horizontal=16 if is_mobile else 24, vertical=16 if is_mobile else 24),
+        padding=24,
         expand=True
     )
 
