@@ -109,25 +109,22 @@ def _construire(page, state, nav, zones, blocs, caveaux):
     tab_content  = {"ref": None}
     filtre_btns  = {}
 
-    # ===== Champs de formulaire (reutilisables) =====
-    def champ_texte(label, value="", hint="", multiline=False, min_lines=1, max_lines=3):
+    def champ_texte(label, value="", hint="", width=None):
         return ft.TextField(
             label=label,
             value=value,
             hint_text=hint,
-            multiline=multiline,
-            min_lines=min_lines if multiline else 1,
-            max_lines=max_lines if multiline else 1,
             border_color=SECONDARY,
             color=ft.Colors.WHITE,
             bgcolor=BG_DARK,
             label_style=ft.TextStyle(color=SECONDARY),
-            expand=True
+            width=width,
+            expand=True if width is None else False,
         )
-    # ===== TAB ZONES =====
+
     def build_tab_zones():
         nom_z = champ_texte("Nom de la zone *")
-        desc_z = champ_texte("Description", multiline=True, min_lines=2, max_lines=3)
+        desc_z = champ_texte("Description")
         expl_z = ft.Checkbox(label="Exploitable", value=True,
                              active_color=PRIMARY, check_color=ft.Colors.WHITE)
         msg_z = ft.Text("", size=12, color=ft.Colors.RED_400)
@@ -179,14 +176,13 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                 border=ft.Border.all(1, SECONDARY + "20")
             )
 
-        # Formulaire + liste en ResponsiveRow
         return ft.ResponsiveRow(controls=[
             ft.Container(
                 content=ft.Column(controls=[
                     ft.Text("Nouvelle zone", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                     ft.Divider(color=SECONDARY + "30", height=1),
                     nom_z, desc_z, expl_z, msg_z,
-                    btn("Créer la zone", on_create, icon=ft.Icons.ADD, expand=True)
+                    btn("Créer la zone", on_create, icon=ft.Icons.ADD)
                 ], spacing=12, tight=True),
                 bgcolor=BG_CARD, border_radius=12, padding=20,
                 border=ft.Border.all(1, SECONDARY + "25"),
@@ -207,7 +203,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
             )
         ], spacing=20, expand=True)
 
-    # ===== TAB BLOCS =====
+    # === TAB BLOCS ===
     def build_tab_blocs():
         nom_b = champ_texte("Nom du bloc *")
         zone_dd = ft.Dropdown(
@@ -267,7 +263,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                     ft.Divider(color=SECONDARY + "30", height=1),
                     zone_dd if zones else ft.Text("⚠ Créez d'abord une zone", size=12, color="#FF9922"),
                     nom_b, msg_b,
-                    btn("Créer le bloc", on_create, icon=ft.Icons.ADD, disabled=(not zones), expand=True)
+                    btn("Créer le bloc", on_create, icon=ft.Icons.ADD, disabled=(not zones))
                 ], spacing=12, tight=True),
                 bgcolor=BG_CARD, border_radius=12, padding=20,
                 border=ft.Border.all(1, SECONDARY + "25"),
@@ -288,7 +284,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
             )
         ], spacing=20, expand=True)
 
-    # ===== TAB CAVEAUX =====
+    # === TAB CAVEAUX ===
     def build_tab_caveaux():
         numero_c = champ_texte("Numéro (ex: C003) *")
         bloc_dd = ft.Dropdown(
@@ -303,7 +299,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
         statut_dd = ft.Dropdown(
             label="Statut initial", value="DISPONIBLE",
             options=[
-                ft.dropdown.Option(key="DISPONIBLE",    text="Disponible"),
+                ft.dropdown.Option(key="DISPONIBLE", text="Disponible"),
                 ft.dropdown.Option(key="INEXPLOITABLE", text="Inexploitable"),
             ],
             border_color=SECONDARY, color=ft.Colors.WHITE, bgcolor=BG_DARK,
@@ -391,7 +387,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
                         ft.Container(larg_c, col={"sm": 12, "md": 6}),
                     ], spacing=10),
                     msg_c,
-                    btn("Créer le caveau", on_create, icon=ft.Icons.ADD, disabled=(not blocs), expand=True)
+                    btn("Créer le caveau", on_create, icon=ft.Icons.ADD, disabled=(not blocs))
                 ], spacing=12, tight=True),
                 bgcolor=BG_CARD, border_radius=12, padding=20,
                 border=ft.Border.all(1, SECONDARY + "25"),
@@ -412,7 +408,7 @@ def _construire(page, state, nav, zones, blocs, caveaux):
             )
         ], spacing=20, expand=True)
 
-    # ===== BARRE D'ONGLETS =====
+    # === BARRE D'ONGLETS ===
     tab_container = ft.Container(content=build_tab_zones(), expand=True)
     tab_content["ref"] = tab_container
 
