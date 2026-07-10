@@ -34,6 +34,7 @@ def register(request, data: RegisterSchema):
 
 @router.post("/login")
 def login(request, data: LoginSchema):
+    print(">>> LOGIN APPELÉ !!!")
     try:
         user = User.objects.get(email=data.email)
     except User.DoesNotExist:
