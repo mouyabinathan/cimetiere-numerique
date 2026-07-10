@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from ninja import NinjaAPI
 from users.api import router as users_router
 from terrain.api import router as terrain_router
@@ -20,3 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
 ]
+
+# ---------- Servir les fichiers statiques (même en production) ----------
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
