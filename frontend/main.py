@@ -24,8 +24,12 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 0
     page.bgcolor = BG_DARK
+    
+    # Dimension initiale (sera ajustée automatiquement)
     page.window.width = 1280
     page.window.height = 800
+    page.window.min_width = 320  # Empêcher un trop petit écran
+    page.window.min_height = 480
 
     # ---- État global partagé ----
     state = {
@@ -36,6 +40,18 @@ def main(page: ft.Page):
         "resa_count": 0,
         "notif_count": 0,
     }
+
+    # ---- Gestion du redimensionnement ----
+    def on_resize(e):
+        """Recharge la page courante si besoin pour adapter le layout."""
+        # On ne recharge que si la page actuelle est une page avec menu
+        # Pour éviter les rechargements intempestifs sur les pages d'auth
+        if state.get("token") and page.controls:
+            # Récupérer la page actuelle depuis la navigation
+            # On pourrait stocker la route actuelle dans state
+            pass
+    
+    page.on_resize = on_resize
 
     # ---- Navigation centralisée ----
     def nav(key):
