@@ -110,19 +110,20 @@ def _construire(page, state, nav, zones, blocs, caveaux):
     filtre_btns  = {}
 
     # ===== Champs de formulaire (reutilisables) =====
-    def champ_texte(label, value="", hint="", width=None):
+    def champ_texte(label, value="", hint="", multiline=False, min_lines=1, max_lines=3):
         return ft.TextField(
             label=label,
             value=value,
             hint_text=hint,
+            multiline=multiline,
+            min_lines=min_lines if multiline else 1,
+            max_lines=max_lines if multiline else 1,
             border_color=SECONDARY,
             color=ft.Colors.WHITE,
             bgcolor=BG_DARK,
             label_style=ft.TextStyle(color=SECONDARY),
-            expand=True if width is None else False,
-            width=width
+            expand=True
         )
-
     # ===== TAB ZONES =====
     def build_tab_zones():
         nom_z = champ_texte("Nom de la zone *")
