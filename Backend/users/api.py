@@ -46,11 +46,16 @@ def login(request, data: LoginSchema):
     user.mfa_expires_at = timezone.now() + timedelta(minutes=10)
     user.save()
     
-    # ✅ Code affiché dans les logs (visible sur Render)
-    print(f"=== CODE MFA POUR {user.email} : {code} ===")
+    # ✅ Envoi via Brevo
+    try:
+        from users.email import envoyer_code_mfa
+        envoyer_code_mfa(user.email, code)
+        print(f">>> Email MFA envoyé à {user.email} via Brevo")
+    except Exception as ex:
+        print(f">>> Erreur envoi email : {ex}")
     
     return {"message": "Code MFA envoyé"}
-    
+
 @router.post("/verify-mfa")
 def verify_mfa(request, data: MFAVerifySchema):
     try:
