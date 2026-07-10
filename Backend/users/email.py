@@ -1,48 +1,21 @@
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 
-from django.core.mail import send_mail, EmailMessage
-from django.conf import settings
-
 def envoyer_code_mfa(email, code):
-    print(f">>> ENVOI EMAIL à {email} avec code {code}")  # ← AJOUTER
-    try:
-        send_mail(
-            subject="Votre code de connexion",
-            message=f"""
-Bonjour,
+    print(f">>> ENVOI EMAIL à {email} avec code {code}")
+    send_mail(
+        subject="Votre code de connexion - CimétièrePRO",
+        message=f"Votre code de vérification est : {code}\n\nCe code expire dans 10 minutes.\n\nCimetière Municipal de Pointe-Noire",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+        fail_silently=False,
+    )
+    print(f">>> EMAIL ENVOYÉ à {email}")
 
-Votre code de vérification est : {code}
-
-Ce code expire dans 10 minutes.
-
-Cimetière Municipal de Pointe-Noire
-            """,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-        print(f">>> EMAIL ENVOYÉ avec succès à {email}")  # ← AJOUTER
-    except Exception as e:
-        print(f">>> ERREUR ENVOI EMAIL : {e}")  # ← AJOUTER
-        raise
-    
 def envoyer_confirmation_reservation(email, nom_defunt, numero_caveau):
     send_mail(
         subject="Confirmation de votre réservation",
-        message=f"""
-Bonjour,
-
-Votre réservation a été enregistrée avec succès.
-
-Défunt : {nom_defunt}
-Caveau : {numero_caveau}
-Statut : En attente de validation
-
-Vous recevrez une confirmation dès validation par notre équipe.
-
-Cimetière Municipal de Pointe-Noire
-        """,
+        message=f"Votre réservation a été enregistrée.\n\nDéfunt : {nom_defunt}\nCaveau : {numero_caveau}\nStatut : En attente de validation\n\nCimetière Municipal de Pointe-Noire",
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[email],
         fail_silently=False,
@@ -51,15 +24,7 @@ Cimetière Municipal de Pointe-Noire
 def envoyer_facture_email(email, numero_facture, pdf_buffer):
     msg = EmailMessage(
         subject=f"Votre facture {numero_facture}",
-        body=f"""
-Bonjour,
-
-Veuillez trouver ci-joint votre facture {numero_facture}.
-
-Merci de votre confiance.
-
-Cimetière Municipal de Pointe-Noire
-        """,
+        body=f"Veuillez trouver ci-joint votre facture {numero_facture}.\n\nCimetière Municipal de Pointe-Noire",
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[email],
     )
