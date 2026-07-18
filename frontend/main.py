@@ -95,7 +95,8 @@ def main(page: ft.Page):
     page_splash(page)
     boot()
 
+# Remplacer ft.app par ft.run
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
-    ft.run(target=main, port=port, view=None, host="0.0.0.0")
+    ft.run(target=main, port=port, view=None, host="0.0.0.0")  # Changé ici
