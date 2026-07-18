@@ -1,9 +1,12 @@
 import flet as ft
-from config import PRIMARY, SECONDARY, BG_DARK
-from utils.responsivite import is_mobile, get_responsive_padding
+from config import PRIMARY, SECONDARY, BG_DARK, BG_CARD
+from components.widgets import btn, card_wrapper
+from utils.responsivite import is_mobile
+import services.api as api
+
 
 def page_splash(page: ft.Page):
-    """Splash screen responsive."""
+    page.overlay.clear()
     page.controls.clear()
     mobile = is_mobile(page)
     
@@ -11,161 +14,412 @@ def page_splash(page: ft.Page):
         ft.Container(
             content=ft.Column(
                 controls=[
-                    ft.Text("⚰️", size=48 if not mobile else 36),
-                    ft.Text(
-                        "CimétièrePRO",
-                        size=24 if not mobile else 18,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE
-                    ),
-                    ft.ProgressRing(color=PRIMARY, width=30, height=30),
+                    ft.Icon(ft.Icons.ACCOUNT_BALANCE, size=60 if mobile else 80, color=PRIMARY),
+                    ft.Text("CimétièrePRO", size=24 if mobile else 32, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    ft.Text("Pointe-Noire · Municipal", size=12 if mobile else 14, color=SECONDARY),
+                    ft.Container(height=20 if mobile else 30),
+                    ft.ProgressRing(color=PRIMARY, width=30 if mobile else 40, height=30 if mobile else 40),
+                    ft.Text("Chargement...", size=11 if mobile else 12, color=SECONDARY),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.CENTER,
-                spacing=12,
+                spacing=10 if mobile else 12
             ),
             alignment=ft.Alignment(0, 0),
             expand=True,
-            bgcolor=BG_DARK,
+            bgcolor=BG_DARK
         )
     )
     page.update()
 
-def page_login(page: ft.Page, on_success, on_register_click):
-    """Page de login responsive."""
+
+def page_login(page: ft.Page, on_success, on_register):
+    page.overlay.clear()
     page.controls.clear()
     mobile = is_mobile(page)
     
-    # Champs
+    # Largeurs adaptatives
+    field_width = 320 if mobile else 380
+    icon_size = 48 if mobile else 60
+    title_size = 22 if mobile else 28
+
     email_field = ft.TextField(
-        hint_text="Email",
-        prefix_icon=ft.Icons.EMAIL_OUTLINED,
-        width=300 if not mobile else 280,
-        height=44,
+        label="Adresse email", prefix_icon=ft.Icons.EMAIL_OUTLINED,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
     )
-    
     password_field = ft.TextField(
-        hint_text="Mot de passe",
-        prefix_icon=ft.Icons.LOCK_OUTLINED,
-        password=True,
-        can_reveal_password=True,
-        width=300 if not mobile else 280,
-        height=44,
+        label="Mot de passe", prefix_icon=ft.Icons.LOCK_OUTLINED,
+        password=True, can_reveal_password=True,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
     )
-    
-    def on_login_click(e):
-        # Logique de login
-        on_success({"token": "fake", "role": "admin", "nom": "Admin", "email": "admin@test.com"})
-    
+    message = ft.Text("", size=13, color=ft.Colors.RED_400)
+    login_btn_ref = {"control": None}
+
+    def set_msg(text, kind="error"):
+        colors = {"error": ft.Colors.RED_400, "info": ft.Colors.AMBER_400, "ok": ft.Colors.GREEN_400}
+        message.color = colors.get(kind, ft.Colors.RED_400)
+        message.value = text
+        page.update()
+
+    def set_loading(v):
+        login_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
+        login_btn_ref["control"].on_click = None if v else on_login
+        login_btn_ref["control"].content = ft.Row(
+            controls=(
+                [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
+                else [ft.Icon(ft.Icons.LOGIN, color=ft.Colors.WHITE, size=16)]
+            ) + [ft.Text("Connexion..." if v else "Se connecter",
+                         color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
+            alignment=ft.MainAxisAlignment.CENTER, spacing=8
+        )
+        page.update()
+
+    def do_login(email, password):
+        try:
+            res = api.login(email, password)
+            if res.status_code == 200:
+                data = res.json()
+                if "error" in data:
+                    set_loading(False)
+                    set_msg(data["error"])
+                else:
+                    page_mfa(page, email, on_success, on_register)
+            else:
+                set_loading(False)
+                set_msg("Erreur de connexion au serveur")
+        except Exception as ex:
+            set_loading(False)
+            set_msg(f"Erreur : {str(ex)}")
+
+    def on_login(e):
+        if not email_field.value or not password_field.value:
+            set_msg("Veuillez remplir tous les champs")
+            return
+        set_loading(True)
+        set_msg("Connexion en cours...", "info")
+        page.run_thread(do_login, email_field.value, password_field.value)
+
+    login_button = btn("Se connecter", on_login, width=field_width, icon=ft.Icons.LOGIN)
+    login_btn_ref["control"] = login_button
+
     page.add(
-        ft.Container(
-            content=ft.Column(
+        card_wrapper(
+            ft.Column(
                 controls=[
-                    ft.Container(height=40),
-                    ft.Text("🔑", size=40 if not mobile else 32),
-                    ft.Text(
-                        "Connexion",
-                        size=24 if not mobile else 20,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE,
-                    ),
-                    ft.Text(
-                        "CimétièrePRO — Pointe-Noire",
-                        size=13 if not mobile else 11,
-                        color=SECONDARY,
-                    ),
-                    ft.Container(height=20),
+                    ft.Icon(ft.Icons.ACCOUNT_BALANCE, size=icon_size, color=PRIMARY),
+                    ft.Text("CimétièrePRO", size=title_size, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    ft.Text("Pointe-Noire · Municipal", size=12 if mobile else 13, color=SECONDARY),
+                    ft.Container(height=8 if mobile else 10),
+                    ft.Divider(color=SECONDARY, height=1),
+                    ft.Container(height=8 if mobile else 10),
+                    ft.Text("Connexion à votre espace", size=14 if mobile else 16, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
                     email_field,
                     password_field,
-                    ft.Container(
-                        content=ft.ElevatedButton(
-                            "Se connecter",
-                            on_click=on_login_click,
-                            bgcolor=PRIMARY,
-                            color=ft.Colors.WHITE,
-                            width=300 if not mobile else 280,
-                            height=44,
-                        ),
-                        padding=ft.Padding.only(top=10),
-                    ),
+                    message,
+                    login_button,
+                    ft.Container(height=5),
                     ft.Row(
                         controls=[
-                            ft.Text("Pas de compte ?", color=SECONDARY),
-                            ft.TextButton(
-                                "S'inscrire",
-                                on_click=on_register_click,
-                                style=ft.ButtonStyle(color=PRIMARY),
-                            ),
+                            ft.Icon(ft.Icons.SECURITY, size=12 if mobile else 14, color=SECONDARY),
+                            ft.Text("Connexion sécurisée avec MFA", size=10 if mobile else 11, color=SECONDARY)
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=6
                     ),
+                    ft.Divider(color=SECONDARY + "30", height=1),
+                    ft.Row(
+                        controls=[
+                            ft.Text("Pas encore de compte ?", size=11 if mobile else 12, color=SECONDARY),
+                            ft.TextButton(
+                                content=ft.Text("S'inscrire", size=11 if mobile else 12, color=PRIMARY,
+                                                weight=ft.FontWeight.BOLD),
+                                on_click=lambda e: on_register()
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=6
+                    )
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=8,
+                spacing=12 if mobile else 14
             ),
-            alignment=ft.Alignment(0, 0),
-            expand=True,
-            bgcolor=BG_DARK,
+            width=440 if mobile else 520
         )
     )
     page.update()
 
-def page_register(page: ft.Page, on_register_success):
-    """Page d'inscription responsive."""
+
+def page_mfa(page: ft.Page, email: str, on_success, on_register):
+    page.overlay.clear()
     page.controls.clear()
     mobile = is_mobile(page)
     
-    # Similaire à login mais avec plus de champs
+    field_width = 320 if mobile else 380
+    icon_size = 48 if mobile else 60
+    title_size = 20 if mobile else 24
+
+    code_field = ft.TextField(
+        label="Code MFA reçu par email",
+        prefix_icon=ft.Icons.VERIFIED_OUTLINED,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY, text_align=ft.TextAlign.CENTER,
+    )
+    message = ft.Text("", size=13, color=ft.Colors.RED_400)
+    verify_btn_ref = {"control": None}
+
+    def set_msg(text, kind="error"):
+        colors = {"error": ft.Colors.RED_400, "info": ft.Colors.AMBER_400, "ok": ft.Colors.GREEN_400}
+        message.color = colors.get(kind, ft.Colors.RED_400)
+        message.value = text
+        page.update()
+
+    def set_loading(v):
+        verify_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
+        verify_btn_ref["control"].on_click = None if v else on_verify
+        verify_btn_ref["control"].content = ft.Row(
+            controls=(
+                [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
+                else [ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINED, color=ft.Colors.WHITE, size=16)]
+            ) + [ft.Text("Vérification..." if v else "Vérifier le code",
+                         color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
+            alignment=ft.MainAxisAlignment.CENTER, spacing=8
+        )
+        page.update()
+
+    def do_verify(code):
+        try:
+            res = api.verify_mfa(email, code)
+            if res.status_code == 200:
+                data = res.json()
+                if "error" in data:
+                    set_loading(False)
+                    set_msg(data["error"])
+                else:
+                    on_success(data)
+            else:
+                set_loading(False)
+                set_msg("Code invalide ou expiré")
+        except Exception as ex:
+            set_loading(False)
+            set_msg(f"Erreur : {str(ex)}")
+
+    def on_verify(e):
+        if not code_field.value:
+            set_msg("Veuillez entrer le code reçu")
+            return
+        set_loading(True)
+        set_msg("Vérification en cours...", "info")
+        page.run_thread(do_verify, code_field.value)
+
+    verify_button = btn("Vérifier le code", on_verify, width=field_width, icon=ft.Icons.CHECK_CIRCLE_OUTLINED)
+    verify_btn_ref["control"] = verify_button
+
     page.add(
-        ft.Container(
-            content=ft.Column(
+        card_wrapper(
+            ft.Column(
                 controls=[
-                    ft.Text("📝", size=40 if not mobile else 32),
-                    ft.Text(
-                        "Inscription",
-                        size=24 if not mobile else 20,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE,
-                    ),
-                    ft.TextField(
-                        hint_text="Nom complet",
-                        width=300 if not mobile else 280,
-                        height=44,
-                    ),
-                    ft.TextField(
-                        hint_text="Email",
-                        width=300 if not mobile else 280,
-                        height=44,
-                    ),
-                    ft.TextField(
-                        hint_text="Mot de passe",
-                        password=True,
-                        width=300 if not mobile else 280,
-                        height=44,
-                    ),
-                    ft.Container(
-                        content=ft.ElevatedButton(
-                            "S'inscrire",
-                            on_click=lambda e: on_register_success(),
-                            bgcolor=PRIMARY,
-                            color=ft.Colors.WHITE,
-                            width=300 if not mobile else 280,
-                            height=44,
-                        ),
-                        padding=ft.Padding.only(top=10),
-                    ),
+                    ft.Icon(ft.Icons.SHIELD_OUTLINED, size=icon_size, color=PRIMARY),
+                    ft.Text("Vérification MFA", size=title_size, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    ft.Text(f"Code envoyé à {email}", size=11 if mobile else 12, color=SECONDARY),
+                    ft.Container(height=5),
+                    ft.Divider(color=SECONDARY, height=1),
+                    ft.Container(height=5),
+                    code_field,
+                    message,
+                    verify_button,
+                    ft.Container(height=5),
                     ft.TextButton(
-                        "Déjà un compte ? Se connecter",
-                        on_click=lambda e: on_register_success(),
-                        style=ft.ButtonStyle(color=PRIMARY),
-                    ),
+                        content=ft.Row(
+                            controls=[
+                                ft.Icon(ft.Icons.ARROW_BACK, size=14, color=SECONDARY),
+                                ft.Text("Retour à la connexion", size=11 if mobile else 12, color=SECONDARY)
+                            ],
+                            spacing=6
+                        ),
+                        on_click=lambda e: page_login(page, on_success, on_register)
+                    )
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=8,
+                spacing=12 if mobile else 14
             ),
-            alignment=ft.Alignment(0, 0),
-            expand=True,
-            bgcolor=BG_DARK,
+            width=440 if mobile else 520
+        )
+    )
+    page.update()
+
+
+def page_register(page: ft.Page, on_login_click):
+    page.overlay.clear()
+    page.controls.clear()
+    mobile = is_mobile(page)
+    
+    field_width = 320 if mobile else 380
+    icon_size = 48 if mobile else 60
+    title_size = 20 if mobile else 24
+    card_width = 440 if mobile else 520
+
+    nom_field = ft.TextField(
+        label="Nom", prefix_icon=ft.Icons.PERSON_OUTLINED,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
+    )
+    prenom_field = ft.TextField(
+        label="Prénom", prefix_icon=ft.Icons.PERSON_OUTLINED,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
+    )
+    email_field = ft.TextField(
+        label="Adresse email", prefix_icon=ft.Icons.EMAIL_OUTLINED,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
+    )
+    phone_field = ft.TextField(
+        label="Téléphone (optionnel)", prefix_icon=ft.Icons.PHONE_OUTLINED,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
+    )
+    password_field = ft.TextField(
+        label="Mot de passe", prefix_icon=ft.Icons.LOCK_OUTLINED,
+        password=True, can_reveal_password=True,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
+    )
+    confirm_field = ft.TextField(
+        label="Confirmer le mot de passe", prefix_icon=ft.Icons.LOCK_OUTLINED,
+        password=True, can_reveal_password=True,
+        width=field_width, border_radius=10, border_color=SECONDARY,
+        focused_border_color=PRIMARY, bgcolor=BG_DARK,
+        color=ft.Colors.WHITE, label_style=ft.TextStyle(color=SECONDARY),
+        cursor_color=PRIMARY,
+    )
+    message = ft.Text("", size=13, color=ft.Colors.RED_400)
+    reg_btn_ref = {"control": None}
+
+    def set_msg(text, kind="error"):
+        colors = {"error": ft.Colors.RED_400, "info": ft.Colors.AMBER_400, "ok": ft.Colors.GREEN_400}
+        message.color = colors.get(kind, ft.Colors.RED_400)
+        message.value = text
+        page.update()
+
+    def set_loading(v):
+        reg_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
+        reg_btn_ref["control"].on_click = None if v else on_register
+        reg_btn_ref["control"].content = ft.Row(
+            controls=(
+                [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
+                else [ft.Icon(ft.Icons.PERSON_ADD_OUTLINED, color=ft.Colors.WHITE, size=16)]
+            ) + [ft.Text("Inscription..." if v else "Créer mon compte",
+                         color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
+            alignment=ft.MainAxisAlignment.CENTER, spacing=8
+        )
+        page.update()
+
+    def do_register():
+        try:
+            res = api.register_client({
+                "email": email_field.value.strip(),
+                "password": password_field.value,
+                "first_name": prenom_field.value.strip(),
+                "last_name": nom_field.value.strip(),
+                "phone": phone_field.value.strip() if phone_field.value else "",
+            })
+            if res.status_code == 200:
+                data = res.json()
+                if "error" in data:
+                    set_loading(False)
+                    set_msg(data["error"])
+                else:
+                    set_loading(False)
+                    set_msg("✅ Compte créé ! Vous pouvez vous connecter.", "ok")
+                    import time
+                    time.sleep(1.5)
+                    on_login_click()
+            else:
+                set_loading(False)
+                try:
+                    err = res.json()
+                    set_msg(str(err))
+                except Exception:
+                    set_msg(f"Erreur serveur : {res.status_code}")
+        except Exception as ex:
+            set_loading(False)
+            set_msg(f"Erreur : {str(ex)}")
+
+    def on_register(e=None):
+        if not all([nom_field.value, prenom_field.value, email_field.value, password_field.value]):
+            set_msg("Veuillez remplir tous les champs obligatoires")
+            return
+        if password_field.value != confirm_field.value:
+            set_msg("Les mots de passe ne correspondent pas")
+            return
+        if len(password_field.value) < 6:
+            set_msg("Le mot de passe doit faire au moins 6 caractères")
+            return
+        set_loading(True)
+        set_msg("Inscription en cours...", "info")
+        page.run_thread(do_register)
+
+    reg_button = btn("Créer mon compte", on_register, width=field_width, icon=ft.Icons.PERSON_ADD_OUTLINED)
+    reg_btn_ref["control"] = reg_button
+
+    page.add(
+        card_wrapper(
+            ft.Column(
+                controls=[
+                    ft.Icon(ft.Icons.PERSON_ADD_OUTLINED, size=icon_size, color=PRIMARY),
+                    ft.Text("Créer un compte", size=title_size, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    ft.Text("Portail citoyen — Pointe-Noire", size=11 if mobile else 12, color=SECONDARY),
+                    ft.Container(height=5),
+                    ft.Divider(color=SECONDARY, height=1),
+                    ft.Container(height=5),
+                    ft.Row(
+                        controls=[prenom_field],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ) if not mobile else prenom_field,  # Sur mobile, le prénom est seul
+                    nom_field,
+                    email_field,
+                    phone_field,
+                    password_field,
+                    confirm_field,
+                    message,
+                    reg_button,
+                    ft.Divider(color=SECONDARY + "30", height=1),
+                    ft.Row(
+                        controls=[
+                            ft.Text("Déjà un compte ?", size=11 if mobile else 12, color=SECONDARY),
+                            ft.TextButton(
+                                content=ft.Text("Se connecter", size=11 if mobile else 12, color=PRIMARY,
+                                                weight=ft.FontWeight.BOLD),
+                                on_click=lambda e: on_login_click()
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=6
+                    )
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=10 if mobile else 12,
+                scroll=ft.ScrollMode.AUTO,
+            ),
+            width=card_width
         )
     )
     page.update()

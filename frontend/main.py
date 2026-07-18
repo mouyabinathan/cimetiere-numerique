@@ -3,7 +3,6 @@ import time
 import sys
 import os
 
-# Ajouter le dossier frontend au path
 sys.path.insert(0, os.path.dirname(__file__))
 
 from config import PRIMARY, SECONDARY, BG_DARK
@@ -25,31 +24,29 @@ def main(page: ft.Page):
     page.padding = 0
     page.bgcolor = BG_DARK
     
-    # Dimension initiale (sera ajustée automatiquement)
     page.window.width = 1280
     page.window.height = 800
     page.window.min_width = 320
     page.window.min_height = 480
 
-    # ---- État global partagé ----
     state = {
-        "token":      None,
-        "role":       None,
-        "user_nom":   None,
+        "token": None,
+        "role": None,
+        "user_nom": None,
         "user_email": None,
         "resa_count": 0,
         "notif_count": 0,
+        "current_route": None,
     }
 
-    # ---- Gestion du redimensionnement ----
     def on_resize(e):
-        if state.get("token") and page.controls:
-            pass
+        if state.get("token") and state.get("current_route"):
+            nav(state["current_route"])
     
     page.on_resize = on_resize
 
-    # ---- Navigation centralisée ----
     def nav(key):
+        state["current_route"] = key
         routes = {
             "dashboard":   lambda: page_dashboard(page, state, nav),
             "carte":       lambda: page_cartographie(page, state, nav),
@@ -66,24 +63,24 @@ def main(page: ft.Page):
             routes[key]()
 
     def on_login_success(data):
-        state["token"]      = data["token"]
-        state["role"]       = data["role"]
-        state["user_nom"]   = data.get("nom", data.get("email", "Utilisateur"))
+        state["token"] = data.get("token")
+        state["role"] = data.get("role", "user")
+        state["user_nom"] = data.get("nom", data.get("first_name", data.get("email", "Utilisateur")))
         state["user_email"] = data.get("email", "")
         nav("dashboard")
 
     def do_logout():
-        state["token"]      = None
-        state["role"]       = None
-        state["user_nom"]   = None
+        state["token"] = None
+        state["role"] = None
+        state["user_nom"] = None
         state["user_email"] = None
         state["resa_count"] = 0
-        page_login(page, on_login_success, lambda: page_register(page, lambda: page_login(page, on_login_success, lambda: page_register(page, None))))
+        state["current_route"] = None
+        page_login(page, on_login_success, on_register_click)
 
     def on_register_click():
         page_register(page, lambda: page_login(page, on_login_success, on_register_click))
 
-    # ---- Boot ----
     def boot():
         page_login(page, on_login_success, on_register_click)
 
@@ -92,7 +89,5 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 10000))
-    # Correction : ft.run(main, ...) sans target=
     ft.run(main, port=port, view=None, host="0.0.0.0")
