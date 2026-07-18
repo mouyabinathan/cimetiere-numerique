@@ -11,7 +11,6 @@ def build_header(page: ft.Page, state: dict, nav_func, is_mobile: bool, drawer=N
 
     notif_count = state.get("notif_count", 0) if state else 0
 
-    # Construction des contrôles
     controls = []
     
     # Hamburger sur mobile
@@ -21,13 +20,12 @@ def build_header(page: ft.Page, state: dict, nav_func, is_mobile: bool, drawer=N
                 icon=ft.icons.MENU,
                 icon_color=ft.Colors.WHITE,
                 icon_size=24,
-                on_click=lambda e: page.open(drawer),
+                on_click=lambda e: page.show_drawer(),  # Utiliser show_drawer au lieu de open
                 tooltip="Ouvrir le menu",
             )
         )
     
-    # Barre de recherche (avec le même design que l'original)
-    # Sur mobile, on réduit la taille
+    # Barre de recherche
     controls.append(
         ft.Container(
             content=ft.TextField(
@@ -42,7 +40,7 @@ def build_header(page: ft.Page, state: dict, nav_func, is_mobile: bool, drawer=N
                 text_size=13,
             ),
             expand=True if not is_mobile else False,
-            width=None if not is_mobile else 120,  # Réduit sur mobile
+            width=None if not is_mobile else 120,
             bgcolor=BG_CARD,
             border_radius=8,
             padding=ft.Padding.only(left=4, right=14, top=0, bottom=0),
@@ -50,7 +48,7 @@ def build_header(page: ft.Page, state: dict, nav_func, is_mobile: bool, drawer=N
         )
     )
     
-    # Notifications (GARDÉ À L'IDENTIQUE)
+    # Notifications
     controls.append(
         ft.Container(
             content=ft.Stack(
@@ -78,7 +76,7 @@ def build_header(page: ft.Page, state: dict, nav_func, is_mobile: bool, drawer=N
         )
     )
     
-    # Avatar utilisateur (GARDÉ À L'IDENTIQUE)
+    # Avatar utilisateur
     controls.append(
         ft.Container(
             content=ft.Text(user_initials, size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),

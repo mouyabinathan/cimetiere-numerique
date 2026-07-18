@@ -11,7 +11,7 @@ def create_drawer(page: ft.Page, state: dict, nav_func, is_mobile: bool):
         if index < len(routes):
             nav_func(routes[index])
             if is_mobile:
-                page.close(drawer)
+                page.close_drawer()  # Utiliser close_drawer au lieu de close
 
     drawer = ft.NavigationDrawer(
         on_change=on_drawer_change,
@@ -113,7 +113,7 @@ def get_sidebar_menu(page: ft.Page, state: dict, nav_func, is_mobile: bool):
     if is_mobile:
         return None
     
-    active_route = "dashboard"  # À adapter selon votre logique
+    active_route = "dashboard"
     
     menu_items = [
         (ft.icons.DASHBOARD_OUTLINED, "Tableau de bord", "dashboard"),
