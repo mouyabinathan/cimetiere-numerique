@@ -3,7 +3,7 @@ from config import PRIMARY, SECONDARY, BG_DARK, BG_CARD
 from components.sidebar import build_sidebar, create_drawer
 from components.header import build_header
 from components.widgets import kpi_card, activity_row
-from utils.responsive import is_mobile
+from utils.responsivite import is_mobile
 import services.api as api
 
 
