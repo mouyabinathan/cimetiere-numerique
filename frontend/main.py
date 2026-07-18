@@ -28,7 +28,7 @@ def main(page: ft.Page):
     # Dimension initiale (sera ajustée automatiquement)
     page.window.width = 1280
     page.window.height = 800
-    page.window.min_width = 320  # Empêcher un trop petit écran
+    page.window.min_width = 320
     page.window.min_height = 480
 
     # ---- État global partagé ----
@@ -43,12 +43,7 @@ def main(page: ft.Page):
 
     # ---- Gestion du redimensionnement ----
     def on_resize(e):
-        """Recharge la page courante si besoin pour adapter le layout."""
-        # On ne recharge que si la page actuelle est une page avec menu
-        # Pour éviter les rechargements intempestifs sur les pages d'auth
         if state.get("token") and page.controls:
-            # Récupérer la page actuelle depuis la navigation
-            # On pourrait stocker la route actuelle dans state
             pass
     
     page.on_resize = on_resize
@@ -95,8 +90,9 @@ def main(page: ft.Page):
     page_splash(page)
     boot()
 
-# Remplacer ft.app par ft.run
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
-    ft.run(target=main, port=port, view=None, host="0.0.0.0")  # Changé ici
+    # Correction : ft.run(main, ...) sans target=
+    ft.run(main, port=port, view=None, host="0.0.0.0")
