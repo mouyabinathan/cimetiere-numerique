@@ -70,7 +70,7 @@ def _erreur(page, state, nav, msg):
 
 
 def _construire(page, state, nav, stats):
-    # Détection mobile avec page.width (compatible Flet 0.85.3)
+    # Détection mobile avec page.width
     is_mobile = page.width < 768 if page.width else False
     
     taux = stats.get("taux_occupation", 0)
@@ -78,15 +78,12 @@ def _construire(page, state, nav, stats):
     # Créer le drawer pour mobile
     drawer = create_drawer(page, state, nav, is_mobile)
     
-    # Sidebar ou menu mobile
-    if is_mobile:
-        sidebar = None
-    else:
-        sidebar = get_sidebar_menu(page, state, nav, is_mobile)
+    # Sidebar (build_sidebar gère déjà la détection mobile)
+    sidebar = build_sidebar(page, state, "dashboard", nav)
     
     header = build_header(page, state, nav, is_mobile, drawer)
 
-    # KPI Cards - responsive
+    # KPI Cards
     kpi_cards = ft.Row(
         controls=[
             kpi_card("TOTAL CAVEAUX", stats["total"], "Capacité totale",
