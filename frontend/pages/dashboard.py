@@ -1,8 +1,9 @@
 import flet as ft
 from config import PRIMARY, SECONDARY, BG_DARK, BG_CARD
-from components.sidebar import build_sidebar, create_drawer, get_sidebar_menu
+from components.sidebar import build_sidebar, create_drawer
 from components.header import build_header
 from components.widgets import kpi_card, activity_row
+from utils.responsive import is_mobile
 import services.api as api
 
 
@@ -70,18 +71,17 @@ def _erreur(page, state, nav, msg):
 
 
 def _construire(page, state, nav, stats):
-    # Détection mobile avec page.width
-    is_mobile = page.width < 768 if page.width else False
-    
+    mobile = is_mobile(page)
     taux = stats.get("taux_occupation", 0)
     
-    # Créer le drawer pour mobile
-    drawer = create_drawer(page, state, nav, is_mobile)
+    # Drawer pour mobile
+    drawer = create_drawer(page, state, nav)
     
-    # Sidebar (build_sidebar gère déjà la détection mobile)
+    # Sidebar (retourne None sur mobile)
     sidebar = build_sidebar(page, state, "dashboard", nav)
     
-    header = build_header(page, state, nav, is_mobile, drawer)
+    # Header
+    header = build_header(page, state, nav, drawer)
 
     # KPI Cards
     kpi_cards = ft.Row(
@@ -95,7 +95,7 @@ def _construire(page, state, nav, stats):
             kpi_card("TAUX OCCUPATION", f"{taux}%", f"{stats['occupes']} occupés",
                      ft.Icons.DONUT_LARGE_OUTLINED, SECONDARY),
         ],
-        spacing=12 if not is_mobile else 8,
+        spacing=8 if mobile else 12,
         wrap=True,
         run_spacing=8,
     )
@@ -139,7 +139,7 @@ def _construire(page, state, nav, stats):
                                 ft.Text("Réservé", size=10, color=SECONDARY)], spacing=4),
                     ],
                     spacing=12,
-                    wrap=True if is_mobile else False,
+                    wrap=True if mobile else False,
                 ),
             ],
             spacing=10
@@ -177,8 +177,8 @@ def _construire(page, state, nav, stats):
         ),
         bgcolor=BG_CARD, border_radius=12, padding=16,
         border=ft.Border.all(1, SECONDARY + "25"),
-        width=None if is_mobile else 300,
-        expand=True if is_mobile else False,
+        width=None if mobile else 300,
+        expand=True if mobile else False,
     )
 
     # Row pour carte + activité
@@ -193,17 +193,17 @@ def _construire(page, state, nav, stats):
     main_content = ft.Container(
         content=ft.Column(
             controls=[
-                ft.Text("Tableau de bord", size=18 if is_mobile else 20, 
+                ft.Text("Tableau de bord", size=18 if mobile else 20, 
                        weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                 ft.Text("Vue d'ensemble — Cimetière Municipal de Pointe-Noire", 
-                       size=11 if is_mobile else 12, color=SECONDARY),
+                       size=11 if mobile else 12, color=SECONDARY),
                 kpi_cards,
                 carte_activite_row,
             ],
-            spacing=12 if is_mobile else 16,
+            spacing=12 if mobile else 16,
             expand=True
         ),
-        padding=12 if is_mobile else 24,
+        padding=12 if mobile else 24,
         expand=True
     )
 
@@ -211,7 +211,7 @@ def _construire(page, state, nav, stats):
     page.overlay.clear()
     page.controls.clear()
     
-    if is_mobile:
+    if mobile:
         page.add(
             ft.Column(
                 controls=[header, main_content],

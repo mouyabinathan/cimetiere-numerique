@@ -1,13 +1,120 @@
 import flet as ft
 from config import PRIMARY, SECONDARY, BG_CARD, BG_DARK
+from utils.responsivite import is_mobile
+
+def create_drawer(page: ft.Page, state: dict, nav_func):
+    """Crée le drawer pour mobile."""
+    
+    if not is_mobile(page):
+        return None
+    
+    def on_drawer_change(e):
+        index = e.control.selected_index
+        routes = ["dashboard", "carte", "reservations", "concessions", 
+                  "facturation", "exhumations", "reporting", "parametres", "users"]
+        if index < len(routes):
+            nav_func(routes[index])
+            page.close_drawer()
+
+    drawer = ft.NavigationDrawer(
+        on_change=on_drawer_change,
+        controls=[
+            ft.Container(
+                content=ft.Column([
+                    ft.Container(
+                        content=ft.Text(
+                            state.get("user_initials", "?"),
+                            size=28,
+                            weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.WHITE
+                        ),
+                        width=60,
+                        height=60,
+                        bgcolor=PRIMARY,
+                        border_radius=30,
+                        alignment=ft.Alignment(0, 0),
+                    ),
+                    ft.Text(
+                        state.get("user_nom", "Utilisateur"),
+                        size=16,
+                        weight=ft.FontWeight.BOLD,
+                        color=ft.Colors.WHITE,
+                    ),
+                    ft.Text(
+                        state.get("user_email", ""),
+                        size=12,
+                        color=SECONDARY,
+                    ),
+                ]),
+                padding=ft.Padding.symmetric(vertical=20, horizontal=16),
+                bgcolor=BG_DARK,
+            ),
+            ft.Divider(height=1, thickness=1, color=SECONDARY + "30"),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.DASHBOARD_OUTLINED,
+                selected_icon=ft.icons.DASHBOARD,
+                label="Tableau de bord",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.MAP_OUTLINED,
+                selected_icon=ft.icons.MAP,
+                label="Cartographie",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.BOOKMARK_OUTLINED,
+                selected_icon=ft.icons.BOOKMARK,
+                label="Réservations",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.LOCATION_CITY_OUTLINED,
+                selected_icon=ft.icons.LOCATION_CITY,
+                label="Concessions",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.PAYMENT_OUTLINED,
+                selected_icon=ft.icons.PAYMENT,
+                label="Facturation",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.HISTORY_OUTLINED,
+                selected_icon=ft.icons.HISTORY,
+                label="Exhumations",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.ANALYTICS_OUTLINED,
+                selected_icon=ft.icons.ANALYTICS,
+                label="Reporting",
+            ),
+            ft.Divider(height=1, thickness=1, color=SECONDARY + "30"),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.SETTINGS_OUTLINED,
+                selected_icon=ft.icons.SETTINGS,
+                label="Paramètres",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.icons.PEOPLE_OUTLINED,
+                selected_icon=ft.icons.PEOPLE,
+                label="Utilisateurs",
+            ),
+            ft.Divider(height=1, thickness=1, color=SECONDARY + "30"),
+            ft.Container(
+                content=ft.ListTile(
+                    leading=ft.Icon(ft.icons.LOGOUT, color=ft.Colors.RED_400),
+                    title=ft.Text("Déconnexion", color=ft.Colors.RED_400),
+                    on_click=lambda e: nav_func("logout"),
+                ),
+                padding=ft.Padding.symmetric(vertical=4, horizontal=0),
+            ),
+        ],
+    )
+    
+    page.drawer = drawer
+    return drawer
 
 def build_sidebar(page: ft.Page, state: dict, active_route: str, nav_func):
-    """Version originale pour desktop (à conserver pour compatibilité)"""
-    # Détection mobile
-    is_mobile = page.width < 768 if page.width else False
+    """Sidebar desktop ou None si mobile."""
     
-    if is_mobile:
-        # Sur mobile, on retourne None car le drawer est utilisé
+    if is_mobile(page):
         return None
     
     menu_items = [
@@ -86,118 +193,3 @@ def build_sidebar(page: ft.Page, state: dict, active_route: str, nav_func):
         bgcolor=BG_CARD,
         padding=0,
     )
-
-def create_drawer(page: ft.Page, state: dict, nav_func, is_mobile: bool):
-    """Crée le drawer pour mobile"""
-    if not is_mobile:
-        return None
-    
-    def on_drawer_change(e):
-        index = e.control.selected_index
-        routes = ["dashboard", "carte", "reservations", "concessions", 
-                  "facturation", "exhumations", "reporting", "parametres", "users"]
-        if index < len(routes):
-            nav_func(routes[index])
-            page.close_drawer()
-
-    drawer = ft.NavigationDrawer(
-        on_change=on_drawer_change,
-        controls=[
-            ft.Container(
-                content=ft.Column([
-                    ft.Container(
-                        content=ft.Text(
-                            state.get("user_initials", "?"),
-                            size=28,
-                            weight=ft.FontWeight.BOLD,
-                            color=ft.Colors.WHITE
-                        ),
-                        width=60,
-                        height=60,
-                        bgcolor=PRIMARY,
-                        border_radius=30,
-                        alignment=ft.Alignment(0, 0),
-                    ),
-                    ft.Text(
-                        state.get("user_nom", "Utilisateur"),
-                        size=16,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE,
-                    ),
-                    ft.Text(
-                        state.get("user_email", "email@exemple.com"),
-                        size=12,
-                        color=SECONDARY,
-                    ),
-                ]),
-                padding=ft.Padding.symmetric(vertical=20, horizontal=16),
-                bgcolor=BG_DARK,
-            ),
-            ft.Divider(height=1, thickness=1, color=SECONDARY + "30"),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.DASHBOARD_OUTLINED,
-                selected_icon=ft.icons.DASHBOARD,
-                label="Tableau de bord",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.MAP_OUTLINED,
-                selected_icon=ft.icons.MAP,
-                label="Cartographie",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.BOOKMARK_OUTLINED,
-                selected_icon=ft.icons.BOOKMARK,
-                label="Réservations",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.LOCATION_CITY_OUTLINED,
-                selected_icon=ft.icons.LOCATION_CITY,
-                label="Concessions",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.PAYMENT_OUTLINED,
-                selected_icon=ft.icons.PAYMENT,
-                label="Facturation",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.HISTORY_OUTLINED,
-                selected_icon=ft.icons.HISTORY,
-                label="Exhumations",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.ANALYTICS_OUTLINED,
-                selected_icon=ft.icons.ANALYTICS,
-                label="Reporting",
-            ),
-            ft.Divider(height=1, thickness=1, color=SECONDARY + "30"),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.SETTINGS_OUTLINED,
-                selected_icon=ft.icons.SETTINGS,
-                label="Paramètres",
-            ),
-            ft.NavigationDrawerDestination(
-                icon=ft.icons.PEOPLE_OUTLINED,
-                selected_icon=ft.icons.PEOPLE,
-                label="Utilisateurs",
-            ),
-            ft.Divider(height=1, thickness=1, color=SECONDARY + "30"),
-            ft.Container(
-                content=ft.ListTile(
-                    leading=ft.Icon(ft.icons.LOGOUT, color=ft.Colors.RED_400),
-                    title=ft.Text("Déconnexion", color=ft.Colors.RED_400),
-                    on_click=lambda e: nav_func("logout"),
-                ),
-                padding=ft.Padding.symmetric(vertical=4, horizontal=0),
-            ),
-        ],
-    )
-    
-    page.drawer = drawer
-    return drawer
-
-# Pour compatibilité ascendante
-def get_sidebar_menu(page: ft.Page, state: dict, nav_func, is_mobile: bool):
-    """Alias pour build_sidebar avec détection mobile"""
-    if is_mobile:
-        return None
-    return build_sidebar(page, state, "dashboard", nav_func)
