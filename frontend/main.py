@@ -23,7 +23,7 @@ def main(page: ft.Page):
     page.padding = 0
     page.bgcolor = BG_DARK
     
-    page.window.width = 1280    
+    page.window.width = 1280
     page.window.height = 800
 
     state = {
@@ -60,7 +60,6 @@ def main(page: ft.Page):
             routes[key]()
 
     def on_login_success(data):
-        # Récupérer le token (peut être dans 'token' ou 'access_token')
         token = data.get("token") or data.get("access_token")
         if not token:
             return

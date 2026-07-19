@@ -3,8 +3,6 @@ from config import PRIMARY, SECONDARY, BG_CARD
 from utils.responsivite import is_mobile
 
 def build_header(page: ft.Page, state: dict, nav_func, drawer=None):
-    """Header responsive avec détection mobile."""
-    
     mobile = is_mobile(page)
     
     user_initials = "?"

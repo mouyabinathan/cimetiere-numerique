@@ -67,17 +67,18 @@ def page_login(page: ft.Page, on_success, on_register):
         page.update()
 
     def set_loading(v):
-        login_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
-        login_btn_ref["control"].on_click = None if v else on_login
-        login_btn_ref["control"].content = ft.Row(
-            controls=(
-                [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
-                else [ft.Icon(ft.Icons.LOGIN, color=ft.Colors.WHITE, size=16)]
-            ) + [ft.Text("Connexion..." if v else "Se connecter",
-                         color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
-            alignment=ft.MainAxisAlignment.CENTER, spacing=8
-        )
-        page.update()
+        if login_btn_ref["control"]:
+            login_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
+            login_btn_ref["control"].on_click = None if v else on_login
+            login_btn_ref["control"].content = ft.Row(
+                controls=(
+                    [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
+                    else [ft.Icon(ft.Icons.LOGIN, color=ft.Colors.WHITE, size=16)]
+                ) + [ft.Text("Connexion..." if v else "Se connecter",
+                             color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
+                alignment=ft.MainAxisAlignment.CENTER, spacing=8
+            )
+            page.update()
 
     def do_login(email, password):
         try:
@@ -88,15 +89,12 @@ def page_login(page: ft.Page, on_success, on_register):
                 return
             if res.status_code == 200:
                 data = res.json()
-                if "error" in data:
+                # Vérifier si MFA est requis
+                if data.get("mfa_required", False):
                     set_loading(False)
-                    set_msg(data["error"])
+                    page_mfa(page, email, on_success, on_register)
                 else:
-                    # Vérifier si MFA est requis
-                    if data.get("mfa_required", False):
-                        page_mfa(page, email, on_success, on_register)
-                    else:
-                        on_success(data)
+                    on_success(data)
             else:
                 set_loading(False)
                 try:
@@ -193,17 +191,18 @@ def page_mfa(page: ft.Page, email: str, on_success, on_register):
         page.update()
 
     def set_loading(v):
-        verify_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
-        verify_btn_ref["control"].on_click = None if v else on_verify
-        verify_btn_ref["control"].content = ft.Row(
-            controls=(
-                [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
-                else [ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINED, color=ft.Colors.WHITE, size=16)]
-            ) + [ft.Text("Vérification..." if v else "Vérifier le code",
-                         color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
-            alignment=ft.MainAxisAlignment.CENTER, spacing=8
-        )
-        page.update()
+        if verify_btn_ref["control"]:
+            verify_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
+            verify_btn_ref["control"].on_click = None if v else on_verify
+            verify_btn_ref["control"].content = ft.Row(
+                controls=(
+                    [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
+                    else [ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINED, color=ft.Colors.WHITE, size=16)]
+                ) + [ft.Text("Vérification..." if v else "Vérifier le code",
+                             color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
+                alignment=ft.MainAxisAlignment.CENTER, spacing=8
+            )
+            page.update()
 
     def do_verify(code):
         try:
@@ -339,17 +338,18 @@ def page_register(page: ft.Page, on_login_click):
         page.update()
 
     def set_loading(v):
-        reg_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
-        reg_btn_ref["control"].on_click = None if v else on_register
-        reg_btn_ref["control"].content = ft.Row(
-            controls=(
-                [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
-                else [ft.Icon(ft.Icons.PERSON_ADD_OUTLINED, color=ft.Colors.WHITE, size=16)]
-            ) + [ft.Text("Inscription..." if v else "Créer mon compte",
-                         color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
-            alignment=ft.MainAxisAlignment.CENTER, spacing=8
-        )
-        page.update()
+        if reg_btn_ref["control"]:
+            reg_btn_ref["control"].bgcolor = SECONDARY + "50" if v else PRIMARY
+            reg_btn_ref["control"].on_click = None if v else on_register
+            reg_btn_ref["control"].content = ft.Row(
+                controls=(
+                    [ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.Colors.WHITE)] if v
+                    else [ft.Icon(ft.Icons.PERSON_ADD_OUTLINED, color=ft.Colors.WHITE, size=16)]
+                ) + [ft.Text("Inscription..." if v else "Créer mon compte",
+                             color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)],
+                alignment=ft.MainAxisAlignment.CENTER, spacing=8
+            )
+            page.update()
 
     def do_register():
         try:
