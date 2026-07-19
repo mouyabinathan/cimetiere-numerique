@@ -60,10 +60,13 @@ def main(page: ft.Page):
             routes[key]()
 
     def on_login_success(data):
+        print(f"🔑 on_login_success reçu: {data}")
         token = data.get("token") or data.get("access_token")
         if not token:
+            print("❌ Aucun token trouvé!")
             return
         
+        print(f"✅ Token récupéré: {token[:20]}...")
         state["token"] = token
         state["role"] = data.get("role", "user")
         state["user_nom"] = data.get("nom", data.get("first_name", data.get("email", "Utilisateur")))

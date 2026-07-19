@@ -16,15 +16,11 @@ def verify_mfa(email, code):
     return client.post(f"{API_URL}/users/verify-mfa", json={"email": email, "code": code})
 
 # ---- TERRAIN ----
-def get_carte(token):
-    if not token:
-        return None
-    return client.get(f"{API_URL}/terrain/carte", headers=get_headers(token))
-
 def get_carte_stats(token):
     if not token:
         return None
     return client.get(f"{API_URL}/terrain/carte/stats", headers=get_headers(token))
+
 
 def get_caveaux(token):
     if not token:

@@ -89,11 +89,15 @@ def page_login(page: ft.Page, on_success, on_register):
                 return
             if res.status_code == 200:
                 data = res.json()
+                print(f"📦 Réponse login: {data}")
+                
                 # Vérifier si MFA est requis
                 if data.get("mfa_required", False):
-                    set_loading(False)
+                    print("🔐 MFA requis")
+                    set_loading(False)  # Important: arrêter le loading
                     page_mfa(page, email, on_success, on_register)
                 else:
+                    print("✅ Pas de MFA")
                     on_success(data)
             else:
                 set_loading(False)
@@ -206,18 +210,27 @@ def page_mfa(page: ft.Page, email: str, on_success, on_register):
 
     def do_verify(code):
         try:
+            print(f"🔐 Vérification MFA pour {email}")
             res = api.verify_mfa(email, code)
             if res is None:
                 set_loading(False)
                 set_msg("Erreur de connexion au serveur")
                 return
+            print(f"📦 Réponse MFA: status={res.status_code}")
             if res.status_code == 200:
                 data = res.json()
                 if "error" in data:
                     set_loading(False)
                     set_msg(data["error"])
                 else:
-                    on_success(data)
+                    # Récupérer le token de la réponse MFA
+                    token = data.get("token") or data.get("access_token")
+                    if token:
+                        print(f"✅ Token MFA reçu: {token[:20]}...")
+                        on_success(data)
+                    else:
+                        set_loading(False)
+                        set_msg("Aucun token reçu")
             else:
                 set_loading(False)
                 try:

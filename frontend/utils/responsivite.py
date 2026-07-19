@@ -1,26 +1,40 @@
 import flet as ft
 import os
 
-# Force le mode mobile sur Render
-FORCE_MOBILE = os.environ.get("RENDER") is not None
-
 def is_mobile(page: ft.Page) -> bool:
-    """Détection mobile"""
-    # FORCER mobile sur Render
-    if FORCE_MOBILE:
-        return True
+    """Détecte si l'écran est mobile avec plusieurs méthodes de fallback."""
     
-    # Détection normale
+    # Méthode 1: window.width
+    try:
+        if hasattr(page, 'window') and hasattr(page.window, 'width'):
+            if page.window.width and page.window.width < 768:
+                return True
+    except:
+        pass
+    
+    # Méthode 2: page.width
     try:
         if page.width and page.width < 768:
             return True
     except:
         pass
     
+    # Méthode 3: User-Agent (pour Render/WebView)
     try:
-        if page.window.width and page.window.width < 768:
+        if hasattr(page, 'web') and page.web:
             return True
     except:
         pass
     
+    # Méthode 4: Environnement Render
+    if os.environ.get("RENDER"):
+        return True
+    
+    # Par défaut: desktop
     return False
+
+def get_responsive_padding(page: ft.Page) -> int:
+    return 12 if is_mobile(page) else 24
+
+def get_responsive_font_size(page: ft.Page, base_size: int) -> int:
+    return base_size - 2 if is_mobile(page) else base_size
