@@ -1,13 +1,13 @@
-# utils/responsivite.py - Ajoute ceci en haut
+# utils/responsivite.py
+import flet as ft
 import os
 
-# 🔥 FORCER mobile sur Render
-if os.environ.get("RENDER"):
-    print("📱 MODE MOBILE FORCÉ SUR RENDER")  # Pour vérifier dans les logs
+# 🔥 FORCER le mode mobile TOUJOURS sur Render
+FORCE_MOBILE = True  # 👈 Mettre à True pour forcer
 
 def is_mobile(page: ft.Page) -> bool:
-    # 1️⃣ FORCER sur Render
-    if os.environ.get("RENDER"):
+    # 1️⃣ FORCER toujours
+    if FORCE_MOBILE:
         return True
     
     # 2️⃣ window.width
