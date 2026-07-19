@@ -38,7 +38,6 @@ def page_login(page: ft.Page, on_success, on_register):
     page.controls.clear()
     mobile = is_mobile(page)
     
-    # Largeurs adaptatives
     field_width = 320 if mobile else 380
     icon_size = 48 if mobile else 60
     title_size = 22 if mobile else 28
@@ -83,16 +82,28 @@ def page_login(page: ft.Page, on_success, on_register):
     def do_login(email, password):
         try:
             res = api.login(email, password)
+            if res is None:
+                set_loading(False)
+                set_msg("Erreur de connexion au serveur")
+                return
             if res.status_code == 200:
                 data = res.json()
                 if "error" in data:
                     set_loading(False)
                     set_msg(data["error"])
                 else:
-                    page_mfa(page, email, on_success, on_register)
+                    # Vérifier si MFA est requis
+                    if data.get("mfa_required", False):
+                        page_mfa(page, email, on_success, on_register)
+                    else:
+                        on_success(data)
             else:
                 set_loading(False)
-                set_msg("Erreur de connexion au serveur")
+                try:
+                    err = res.json()
+                    set_msg(err.get("error", f"Erreur {res.status_code}"))
+                except:
+                    set_msg(f"Erreur {res.status_code}")
         except Exception as ex:
             set_loading(False)
             set_msg(f"Erreur : {str(ex)}")
@@ -197,6 +208,10 @@ def page_mfa(page: ft.Page, email: str, on_success, on_register):
     def do_verify(code):
         try:
             res = api.verify_mfa(email, code)
+            if res is None:
+                set_loading(False)
+                set_msg("Erreur de connexion au serveur")
+                return
             if res.status_code == 200:
                 data = res.json()
                 if "error" in data:
@@ -206,7 +221,11 @@ def page_mfa(page: ft.Page, email: str, on_success, on_register):
                     on_success(data)
             else:
                 set_loading(False)
-                set_msg("Code invalide ou expiré")
+                try:
+                    err = res.json()
+                    set_msg(err.get("error", "Code invalide ou expiré"))
+                except:
+                    set_msg("Code invalide ou expiré")
         except Exception as ex:
             set_loading(False)
             set_msg(f"Erreur : {str(ex)}")
@@ -341,6 +360,10 @@ def page_register(page: ft.Page, on_login_click):
                 "last_name": nom_field.value.strip(),
                 "phone": phone_field.value.strip() if phone_field.value else "",
             })
+            if res is None:
+                set_loading(False)
+                set_msg("Erreur de connexion au serveur")
+                return
             if res.status_code == 200:
                 data = res.json()
                 if "error" in data:
@@ -390,10 +413,10 @@ def page_register(page: ft.Page, on_login_click):
                     ft.Container(height=5),
                     ft.Divider(color=SECONDARY, height=1),
                     ft.Container(height=5),
-                    ft.Row(
+                    prenom_field if mobile else ft.Row(
                         controls=[prenom_field],
                         alignment=ft.MainAxisAlignment.CENTER
-                    ) if not mobile else prenom_field,  # Sur mobile, le prénom est seul
+                    ),
                     nom_field,
                     email_field,
                     phone_field,

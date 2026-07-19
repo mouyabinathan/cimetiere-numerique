@@ -1,11 +1,10 @@
 import flet as ft
-import time
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from config import PRIMARY, SECONDARY, BG_DARK
+from config import BG_DARK
 from pages.auth import page_splash, page_login, page_register
 from pages.dashboard import page_dashboard
 from pages.cartographie import page_cartographie
@@ -24,10 +23,8 @@ def main(page: ft.Page):
     page.padding = 0
     page.bgcolor = BG_DARK
     
-    page.window.width = 1280
+    page.window.width = 1280    
     page.window.height = 800
-    page.window.min_width = 320
-    page.window.min_height = 480
 
     state = {
         "token": None,
@@ -63,7 +60,12 @@ def main(page: ft.Page):
             routes[key]()
 
     def on_login_success(data):
-        state["token"] = data.get("token")
+        # Récupérer le token (peut être dans 'token' ou 'access_token')
+        token = data.get("token") or data.get("access_token")
+        if not token:
+            return
+        
+        state["token"] = token
         state["role"] = data.get("role", "user")
         state["user_nom"] = data.get("nom", data.get("first_name", data.get("email", "Utilisateur")))
         state["user_email"] = data.get("email", "")
@@ -81,11 +83,8 @@ def main(page: ft.Page):
     def on_register_click():
         page_register(page, lambda: page_login(page, on_login_success, on_register_click))
 
-    def boot():
-        page_login(page, on_login_success, on_register_click)
-
     page_splash(page)
-    boot()
+    page_login(page, on_login_success, on_register_click)
 
 
 if __name__ == "__main__":
