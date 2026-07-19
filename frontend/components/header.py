@@ -3,6 +3,8 @@ from config import PRIMARY, SECONDARY, BG_CARD
 from utils.responsivite import is_mobile
 
 def build_header(page: ft.Page, state: dict, nav_func, drawer=None):
+    """Header responsive avec détection mobile."""
+    
     mobile = is_mobile(page)
     
     user_initials = "?"
@@ -14,6 +16,7 @@ def build_header(page: ft.Page, state: dict, nav_func, drawer=None):
 
     controls = []
     
+    # Hamburger sur mobile
     if mobile and drawer:
         controls.append(
             ft.IconButton(
@@ -25,6 +28,7 @@ def build_header(page: ft.Page, state: dict, nav_func, drawer=None):
             )
         )
     
+    # Barre de recherche
     controls.append(
         ft.Container(
             content=ft.TextField(
@@ -47,6 +51,7 @@ def build_header(page: ft.Page, state: dict, nav_func, drawer=None):
         )
     )
     
+    # Notifications
     controls.append(
         ft.Container(
             content=ft.Stack(
@@ -76,6 +81,7 @@ def build_header(page: ft.Page, state: dict, nav_func, drawer=None):
         )
     )
     
+    # Avatar utilisateur
     controls.append(
         ft.Container(
             content=ft.Text(user_initials, size=11 if mobile else 12, 

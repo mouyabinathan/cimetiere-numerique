@@ -3,6 +3,8 @@ from config import PRIMARY, SECONDARY, BG_CARD, BG_DARK
 from utils.responsivite import is_mobile
 
 def create_drawer(page: ft.Page, state: dict, nav_func):
+    """Crée le drawer pour mobile."""
+    
     if not is_mobile(page):
         return None
     
@@ -110,6 +112,8 @@ def create_drawer(page: ft.Page, state: dict, nav_func):
     return drawer
 
 def build_sidebar(page: ft.Page, state: dict, active_route: str, nav_func):
+    """Sidebar desktop ou None si mobile."""
+    
     if is_mobile(page):
         return None
     

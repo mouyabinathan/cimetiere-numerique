@@ -32,26 +32,13 @@ def page_dashboard(page: ft.Page, state: dict, nav):
 
 def _fetch(page, state, nav):
     try:
-        token = state.get("token")
-        if not token:
-            _erreur(page, state, nav, "Session expirée. Veuillez vous reconnecter.")
-            return
-            
-        res = api.get_carte_stats(token)
-        if res is None:
-            _erreur(page, state, nav, "Erreur de connexion au serveur")
-            return
-            
-        if res.status_code == 401:
-            _erreur(page, state, nav, "Session expirée. Veuillez vous reconnecter.")
-            return
-            
+        res = api.get_carte_stats(state["token"])
         if res.status_code == 200:
             try:
-                res_resa = api.get_reservations(token)
-                if res_resa and res_resa.status_code == 200:
+                res_resa = api.get_reservations(state["token"])
+                if res_resa.status_code == 200:
                     resa_data = res_resa.json()
-                    state["resa_count"] = len([r for r in resa_data if r.get("statut") == "EN_ATTENTE"])
+                    state["resa_count"] = len([r for r in resa_data if r["statut"] == "EN_ATTENTE"])
             except Exception:
                 pass
             _construire(page, state, nav, res.json())
@@ -70,11 +57,6 @@ def _erreur(page, state, nav, msg):
                 controls=[
                     ft.Icon(ft.Icons.ERROR_OUTLINE, size=50, color=ft.Colors.RED_400),
                     ft.Text(msg, size=13, color=ft.Colors.RED_400),
-                    ft.TextButton(
-                        "Recharger",
-                        on_click=lambda e: page_dashboard(page, state, nav),
-                        style=ft.ButtonStyle(color=PRIMARY)
-                    )
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -92,10 +74,16 @@ def _construire(page, state, nav, stats):
     mobile = is_mobile(page)
     taux = stats.get("taux_occupation", 0)
     
+    # Drawer pour mobile
     drawer = create_drawer(page, state, nav)
+    
+    # Sidebar (retourne None sur mobile)
     sidebar = build_sidebar(page, state, "dashboard", nav)
+    
+    # Header
     header = build_header(page, state, nav, drawer)
 
+    # KPI Cards
     kpi_cards = ft.Row(
         controls=[
             kpi_card("TOTAL CAVEAUX", stats["total"], "Capacité totale",
@@ -112,6 +100,7 @@ def _construire(page, state, nav, stats):
         run_spacing=8,
     )
 
+    # Carte du cimetière
     carte_container = ft.Container(
         content=ft.Column(
             controls=[
@@ -160,6 +149,7 @@ def _construire(page, state, nav, stats):
         expand=True,
     )
 
+    # Activité récente
     activite_container = ft.Container(
         content=ft.Column(
             controls=[
@@ -191,6 +181,7 @@ def _construire(page, state, nav, stats):
         expand=True if mobile else False,
     )
 
+    # Row pour carte + activité
     carte_activite_row = ft.Row(
         controls=[carte_container, activite_container],
         spacing=12,
@@ -198,6 +189,7 @@ def _construire(page, state, nav, stats):
         run_spacing=12,
     )
 
+    # Main content
     main_content = ft.Container(
         content=ft.Column(
             controls=[
@@ -215,6 +207,7 @@ def _construire(page, state, nav, stats):
         expand=True
     )
 
+    # Layout final
     page.overlay.clear()
     page.controls.clear()
     
